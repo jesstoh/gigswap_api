@@ -1,0 +1,1 @@
+web: gunicorn gigswap_api.wsgi
