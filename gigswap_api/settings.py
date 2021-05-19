@@ -39,6 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'accounts',
+    'gigs',
+    'categories',
+    'reviews',
+    'notifications',
+    'talents'
 ]
 
 MIDDLEWARE = [
@@ -79,8 +87,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gigswap',
-        'USER': 'gigswap',
-        'PASSWORD': 'gigswap',
+        'USER': 'gigswapuser',
+        'PASSWORD': 'gigswapuser',
         'HOST': 'localhost'
     }
 }
