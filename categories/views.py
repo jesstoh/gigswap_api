@@ -41,11 +41,14 @@ def subcat_index(request):
         except:
             raise exceptions.ValidationError({'details':'input not valid'})
 
+
+#Get, update and delete particular category by id
 @api_view(['GET', 'PUT', 'DELETE'])
 def categories_show(request, id):
     try:
         category = Category.objects.get(pk=id)
     except:
+        #Error if category id not found
         raise exceptions.NotFound({'details': 'Category not found'})
 
     if request.method == 'DELETE':
@@ -60,5 +63,27 @@ def categories_show(request, id):
 
     return Response(cat_serializer.data)
 
+@api_view(['GET', 'PUT', 'DELETE'])
 def subcat_show(request, id):
-    pass
+    try:
+        subcat = Subcategory.objects.get(pk=id)
+    except:
+        #Error if category id not found
+        raise exceptions.NotFound({'details': 'Subcategory not found'})
+
+    if request.method == 'DELETE':
+        subcat.delete()
+        return Response({'message': 'Delete success'})
+    elif request.method == 'PUT':               
+        try:
+            category = Category.objects.get(pk=request.data.get('category'))
+            subcat.category = category
+            subcat.name = request.data.get("name")
+            subcat.save()
+        except:
+            raise exceptions.ValidationError({'details': 'Invalid input'})
+        subcat_serializer = SubcategorySerializer(subcat)
+    elif request.method == 'GET':
+        subcat_serializer = SubcategorySerializer(subcat)
+
+    return Response(subcat_serializer.data)
