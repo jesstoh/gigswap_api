@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import exceptions
+from rest_framework import status
 from categories.models import Category, Subcategory
 from categories.serializers import CategorySerializer, SubcategorySerializer
 
@@ -16,8 +17,9 @@ def categories_index(request):
         category = CategorySerializer(data=request.data)
         if category.is_valid(raise_exception=True):
             category.save()
-            return Response(category.data)
+            return Response(category.data, status=status.HTTP_201_CREATED)
 
+# Admin view subcategories and create new subcategory
 @api_view(['GET', 'POST'])
 def subcat_index(request):
     #Get all subcategories
@@ -39,9 +41,24 @@ def subcat_index(request):
         except:
             raise exceptions.ValidationError({'details':'input not valid'})
 
-
+@api_view(['GET', 'PUT', 'DELETE'])
 def categories_show(request, id):
-    pass
+    try:
+        category = Category.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'details': 'Category not found'})
+
+    if request.method == 'DELETE':
+        category.delete()
+        return Response({'message': 'Delete success'})
+    elif request.method == 'PUT':
+        cat_serializer = CategorySerializer(instance=category, data=request.data)
+        if cat_serializer.is_valid(raise_exception=True):
+            cat_serializer.save()
+    elif request.method == 'GET':
+        cat_serializer = CategorySerializer(category)
+
+    return Response(cat_serializer.data)
 
 def subcat_show(request, id):
     pass
