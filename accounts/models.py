@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
+from categories.models import Subcategory
 
 # Create your models here.
 class User(AbstractUser):
@@ -22,8 +23,10 @@ class TalentProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="talent_profile")
     bio = models.TextField()
-    remote = models.BooleanField(default=False)
-    min_pay = models.IntegerField(null=False)
+    remote = models.BooleanField(default=False) #prefer remote only
+    fixed_term = models.BooleanField(default=False) #prefer fixed term only
+    skill = models.ManyToManyField(Subcategory, related_name="talent_profile") #Skill set category to find match gigs
+    min_pay = models.IntegerField(null=False) #min hour pay
     image = models.URLField(null=False)
     address = models.CharField(max_length=255, blank=True)
     postal_code = models.IntegerField(blank=True)
