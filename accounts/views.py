@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.exceptions import ValidationError
 from accounts.models import User
 from accounts.serializers import UserSerializer
+from talents.models import TalentFav
 
 # Create your views here.
 
@@ -20,6 +21,9 @@ def register_view(request):
         if user.is_valid(raise_exception=True):
             user.save()
             user_obj = User.objects.get(pk=user.data['id'])
+            #Create a fav object if user is talent
+            if not user_obj.is_hirer:
+                TalentFav.objects.create(user=user_obj)
             # Login after register
             # return Response(user.data)
             # to change to login later

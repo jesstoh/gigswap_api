@@ -12,4 +12,4 @@ class TalentFav(models.Model):
     invited = models.ManyToManyField(Gig, related_name='talent_invited')
 
     def __str__(self):
-        return self.user
+        return self.user.username
