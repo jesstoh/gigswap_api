@@ -1,8 +1,10 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response 
 from rest_framework import exceptions
 from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
 from gigs.models import Gig
 from categories.models import Subcategory
 from gigs.serializers import GigSerializer
@@ -10,9 +12,11 @@ from accounts.models import User
 
 # Create your views here.
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+@csrf_exempt
 def index_view(request):
     if request.method == 'POST':
-        gig = GigSerializer(data=request.data)
+        gig = GigSerializer(data=request.data, context={'request':request})
         if gig.is_valid(raise_exception=True):
             gig.save()
         return Response(gig.data, status=status.HTTP_201_CREATED)

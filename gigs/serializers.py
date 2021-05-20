@@ -6,9 +6,9 @@ from accounts.models import User
 from accounts.serializers import UserSerializer
 
 class GigSerializer(serializers.ModelSerializer):
-    # poster = UserSerializer(read_only=True, many=False)
-    # winner = UserSerializer(read_only=True, many=False)
-    # subcategories = SubcategorySerializer(read_only=True, many=True)
+    poster = UserSerializer(read_only=True, many=False)
+    winner = UserSerializer(read_only=True, many=False)
+    subcategories = SubcategorySerializer(read_only=True, many=True)
 
     class Meta:
         model = Gig
@@ -16,14 +16,14 @@ class GigSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def create(self, validated_data):
-        subcat_data = validated_data.pop('subcategories')
-        # user = User.objects.get(pk=user_data)
-        gig = Gig.objects.create(**validated_data)
+        request = self.context.get('request')
+        gig = Gig.objects.create(**validated_data, poster=request.user)
+        subcat_data = request.data['subcategories']
+        # gig = super().create(validated_data, poster=request.user)
         subcategories = []
-        for subcat in subcat_data:
-            # subcat_id = subcat.get('id')
-            # subcategory = Subcategory.objects.get(pk=subcat)
+        for data in subcat_data:
+            subcat_id = data['id']
+            subcat = Subcategory.objects.get(pk=subcat_id)
             subcategories.append(subcat)
-        gig.subcategories.add(*subcategories)
         return gig
 
