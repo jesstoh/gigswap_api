@@ -1,13 +1,16 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
 from rest_framework import exceptions
 from rest_framework import status
+
 from categories.models import Category, Subcategory
 from categories.serializers import CategorySerializer, SubcategorySerializer
 
 # Create your views here.
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminUser])
 def categories_index(request):
     if request.method == 'GET':
         categories = Category.objects.all()
@@ -21,6 +24,7 @@ def categories_index(request):
 
 # Admin view subcategories and create new subcategory
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminUser])
 def subcat_index(request):
     #Get all subcategories
     if request.method == 'GET':
@@ -44,6 +48,7 @@ def subcat_index(request):
 
 #Get, update and delete particular category by id
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAdminUser])
 def categories_show(request, id):
     try:
         category = Category.objects.get(pk=id)
@@ -64,6 +69,7 @@ def categories_show(request, id):
     return Response(cat_serializer.data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAdminUser])
 def subcat_show(request, id):
     try:
         subcat = Subcategory.objects.get(pk=id)
