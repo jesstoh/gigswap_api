@@ -57,10 +57,15 @@ def show_view(request, id):
         gig.delete()
         return Response({'message': 'delete success'})
     
-
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def save_view(request, id):
-    pass
-
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+    
+    
 def unsave_view(request, id):
     pass
 
