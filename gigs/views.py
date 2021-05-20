@@ -28,8 +28,33 @@ def index_view(request):
 def recommend_gig_view(request):
     pass
 
+@api_view(['GET', 'DELETE', 'PUT'])
+@permission_classes([IsAuthenticated])
 def show_view(request, id):
-    pass
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+    
+    user = request.user
+    if request.method == 'GET':
+        gig_serialized = GigSerializer(gig)
+        return Response (gig_serialized.data)
+    elif request.method == 'PUT':
+        #Only gig owner can update gig
+        if user != gig.poster:
+            raise exceptions.PermissionDenied({'detail': 'Only gig poster can update gig'})
+        gig = GigSerializer(data=request.data, instance=gig, context={'request':request})
+        if gig.is_valid(raise_exception=True):
+            gig.save()
+        return Response(gig.data)
+    elif request.method == 'DELETE':
+        #Only admin or gig owner can delete gig
+        if (user != gig.poster) and (not user.is_staff):
+            raise exceptions.PermissionDenied({'detail': 'Only gig poster or admin can delete gig'})
+        gig.delete()
+        return Response({'message': 'delete success'})
+    
 
 def save_view(request, id):
     pass

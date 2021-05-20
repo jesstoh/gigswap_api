@@ -36,14 +36,14 @@ def subcat_index(request):
         #Get category id from request post data
         cat_id = request.data.get('category')
         if cat_id is None:
-            raise exceptions.ValidationError({'details': 'category id missing'})
+            raise exceptions.ValidationError({'detail': 'category id missing'})
         try:
             category = Category.objects.get(pk=cat_id)
             subcat = Subcategory.objects.create(name=request.data.get('name'), category=category)
             subcats_serializer = SubcategorySerializer(subcat)
             return Response(subcats_serializer.data)
         except:
-            raise exceptions.ValidationError({'details':'input not valid'})
+            raise exceptions.ValidationError({'detail':'input not valid'})
 
 
 #Get, update and delete particular category by id
@@ -54,7 +54,7 @@ def categories_show(request, id):
         category = Category.objects.get(pk=id)
     except:
         #Error if category id not found
-        raise exceptions.NotFound({'details': 'Category not found'})
+        raise exceptions.NotFound({'detail': 'Category not found'})
 
     if request.method == 'DELETE':
         category.delete()
@@ -75,7 +75,7 @@ def subcat_show(request, id):
         subcat = Subcategory.objects.get(pk=id)
     except:
         #Error if category id not found
-        raise exceptions.NotFound({'details': 'Subcategory not found'})
+        raise exceptions.NotFound({'detail': 'Subcategory not found'})
 
     if request.method == 'DELETE':
         subcat.delete()
@@ -87,7 +87,7 @@ def subcat_show(request, id):
             subcat.name = request.data.get("name")
             subcat.save()
         except:
-            raise exceptions.ValidationError({'details': 'Invalid input'})
+            raise exceptions.ValidationError({'detail': 'Invalid input'})
         subcat_serializer = SubcategorySerializer(subcat)
     elif request.method == 'GET':
         subcat_serializer = SubcategorySerializer(subcat)

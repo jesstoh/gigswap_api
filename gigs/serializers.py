@@ -25,5 +25,18 @@ class GigSerializer(serializers.ModelSerializer):
             subcat_id = data['id']
             subcat = Subcategory.objects.get(pk=subcat_id)
             subcategories.append(subcat)
+        gig.subcategories.add(*subcategories)
         return gig
 
+    def update(self, instance, validated_data):
+        gig = super().update(instance, validated_data)
+        request = self.context.get('request')
+        subcat_data = request.data['subcategories']
+        # gig = super().create(validated_data, poster=request.user)
+        subcategories = []
+        for data in subcat_data:
+            subcat_id = data['id']
+            subcat = Subcategory.objects.get(pk=subcat_id)
+            subcategories.append(subcat)
+        gig.subcategories.add(*subcategories)
+        return gig
