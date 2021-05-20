@@ -19,8 +19,18 @@ def register_view(request):
         user = UserSerializer(data=request.data)
         if user.is_valid(raise_exception=True):
             user.save()
+            user_obj = User.objects.get(pk=user.data['id'])
+            # Login after register
+            # return Response(user.data)
             # to change to login later
-            return Response({'message': 'User registered'})
+            refresh = RefreshToken.for_user(user_obj)
+            user_serialized = UserSerializer(user_obj)
+            return Response(
+                {'refresh': str(refresh), 
+                'access': str(refresh.access_token), 
+                'user': user_serialized.data, 
+                'message': 'user registered'}
+            )
 
 
 @api_view(['POST'])

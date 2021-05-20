@@ -11,7 +11,7 @@ class Category(models.Model):
 
 class Subcategory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, null=False)
+    name = models.CharField(max_length=255, null=False, unique=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="subcategories")
 
     def __str__(self):

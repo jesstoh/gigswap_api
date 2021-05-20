@@ -27,7 +27,7 @@ class Gig(models.Model):
     is_updated = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    # expired_at = models.DateTimeField()
+    expired_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
