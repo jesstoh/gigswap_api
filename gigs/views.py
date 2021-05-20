@@ -16,6 +16,8 @@ from accounts.models import User
 @csrf_exempt
 def index_view(request):
     if request.method == 'POST':
+        if not request.user.is_hirer:
+            raise exceptions.PermissionDenied({'detail': 'Only hirer can create gig listing'})
         gig = GigSerializer(data=request.data, context={'request':request})
         if gig.is_valid(raise_exception=True):
             gig.save()
