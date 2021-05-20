@@ -1,7 +1,13 @@
 from django.db import models
 import uuid
+from django.utils import timezone
+from datetime import timedelta
 from accounts.models import User
 from categories.models import Subcategory
+
+#Helper function to set expired date of gig as one month from creation date
+def add_one_month():
+    return timezone.now() + timedelta(days=14)
 
 # Create your models here.
 class Gig(models.Model):
@@ -27,7 +33,7 @@ class Gig(models.Model):
     is_updated = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    expired_at = models.DateTimeField()
+    expired_at = models.DateTimeField(default=add_one_month)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
