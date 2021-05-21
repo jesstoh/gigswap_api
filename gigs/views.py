@@ -72,9 +72,21 @@ def save_view(request, id):
     talent_fav = TalentFav.objects.get(user=request.user)
     talent_fav.saved.add(gig)
     return Response({'message': 'Gig saved'})
-    
+
+@api_view(['PUT'])    
+@permission_classes([IsAuthenticated])
 def unsave_view(request, id):
-    pass
+    #Check if gig exists
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+    #Check if user is talent, only talent can save gig
+    if request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can unsave gig'})
+    talent_fav = TalentFav.objects.get(user=request.user)
+    talent_fav.saved.remove(gig)
+    return Response({'message': 'Gig unsaved'})
 
 def apply_view(request, id):
     pass
