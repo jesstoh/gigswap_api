@@ -4,8 +4,8 @@ from notifications.models import Notification
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = '__all__'
-        read_only_fields = ('id', 'user',)
+        exclude = ['user']
+        read_only_fields = ('id', )
 
 
     def create(self, validated_data):

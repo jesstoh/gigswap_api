@@ -238,6 +238,7 @@ def invite_view(request, id):
 
     #Front end url of gig page
     gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+    #Send notification to talent
     Notification.objects.create(user=talent_fav.user, title='Gig invite', message=f'Hey, someone take notices of your profile, please heads over to <a href="{gig_url}">{gig.title}</a>')
 
     return Response({'message': 'Invite success'})
