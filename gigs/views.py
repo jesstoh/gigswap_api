@@ -246,3 +246,21 @@ def invite_view(request, id):
 def hirer_view(request, id):
     pass
 
+# Gig poster confirm acceptance of deliverable of gig
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def complete_gig_view(request, id):
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+
+    if gig.poster != request.user:
+        raise exceptions.PermissionDenied({'detail': 'Only gig poster can confirm gig completion'})
+
+    if gig.winner:
+        gig.is_completed = True
+        gig.save()
+        return Response({'message': 'Gig completion is updated'})
+    
+    return Response({'detail': 'Only can confirm gig which has been awarded'}, status=status.HTTP_412_PRECONDITION_FAILED)
