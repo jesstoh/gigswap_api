@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from gigs.models import Gig
 from categories.models import Subcategory
 from gigs.serializers import GigSerializer
@@ -81,15 +82,32 @@ def unsave_view(request, id):
         gig = Gig.objects.get(pk=id)
     except:
         raise exceptions.NotFound({'detail': 'Gig not found'})
-    #Check if user is talent, only talent can save gig
+    #Check if user is talent, only talent can unsave gig
     if request.user.is_hirer:
         raise exceptions.PermissionDenied({'detail': 'Only talent can unsave gig'})
     talent_fav = TalentFav.objects.get(user=request.user)
     talent_fav.saved.remove(gig)
     return Response({'message': 'Gig unsaved'})
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def apply_view(request, id):
-    pass
+    #Check if gig exists
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail':'Gig not found'})
+    #Check if user is talent, only talent can apply gig
+    if request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can apply gig'})
+    #Check if gig expired, can't apply expired gig
+    if gig.expired_at.date() < timezone.now().date():
+        return Response({'detail': 'Can\' apply expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    
+    talent_fav = TalentFav.objects.get(user=request.user)
+    talent_fav.applied.add(gig)
+    return Response({'message':'Apply gig successfully'})
+
 
 def withdraw_view(request, id):
     pass
