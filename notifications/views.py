@@ -24,3 +24,17 @@ def view_index(request):
         notifications_serialized = NotificationSerializer(notifications, many=True)
         return Response(notifications_serialized.data)
     
+    # Bulk delete of notifications by user
+    elif request.GET.get('action') == 'delete' and request.method == 'POST':
+        try:
+            #Get notification id to be deleted store in request data
+            notifications_ids = request.data.get('notification_id')
+            #Filter and delete notifications, only user can delete own notifications
+            notifications = Notification.objects.filter(id__in=notifications_ids, user=request.user)
+            if notifications:
+                return Response({'message': 'Delete success'})
+            else:
+                return Response({'message': 'No notification delete'})
+        except:
+            raise exceptions.ValidationError({'detail':'Please provide valid notifications id'})
+
