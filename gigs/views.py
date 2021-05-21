@@ -128,7 +128,7 @@ def withdraw_view(request, id):
     try:
         gig = Gig.objects.get(pk=id)
     except:
-        raise exceptions.PermissionDenied({'detail': 'Gig not found'})
+        raise exceptions.NotFound({'detail': 'Gig not found'})
     #Check if user is talent, only talent can withdraw gig
     if request.user.is_hirer:
         raise exceptions.PermissionDenied({'detail': 'Only talent can apply gig'})
@@ -139,8 +139,31 @@ def withdraw_view(request, id):
     talent_fav.applied.remove(gig)
     return Response({'message':'Withdraw gig successfully'})
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def close_view(request, id):
-    pass
+    #Check if gig exists
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+    #Only gig poster can close gig
+    if gig.poster != request.user:
+        raise exceptions.PermissionDenied({'detail': 'Only gig poster can close gig'})
+    #Only can close open gig
+    if (gig.expired_at.date() < timezone.now().date()) or (gig.is_closed):
+        return Response({'detail': 'Can\'t close expired or already closed gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    #Set gig as closed
+    gig.is_closed = True
+    gig.save()
+    
+    gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+    #Create notification entry for each applicant
+    for talent in gig.talent_applied.all():
+        Notification.objects.create(user=talent.user, title=f'Gig closed', message=f'Gig <a href="{gig_url}">{gig.title}</a> you applied has been closed.')
+
+    return Response({'message': 'Gig is closed'})
 
 def award_view(request, id):
     pass
