@@ -29,7 +29,7 @@ class TalentProfile(models.Model):
     min_pay = models.IntegerField(null=False) #min hour pay
     image = models.URLField(null=False)
     address = models.CharField(max_length=255, blank=True)
-    postal_code = models.IntegerField(blank=True)
+    postal_code = models.IntegerField(blank=True, null=True)
     country = models.CharField(max_length=100, blank=True)
     contact = models.CharField(max_length=20, blank=True)
 
