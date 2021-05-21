@@ -38,3 +38,27 @@ def view_index(request):
         except:
             raise exceptions.ValidationError({'detail':'Please provide valid notifications id'})
 
+    elif request.method == 'POST':
+        try:
+            title = request.data['title']
+            gig = Gig.objects.get(pk=request.data['gig_id'])
+        except:
+            raise exceptions.NotFound({'detail': 'Gig not found'})
+
+        if gig.winner != request.user:
+            raise exceptions.PermissionDenied({'detail': 'Only gig winner can request for payment or acceptance'})
+        
+        gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+        if title == 'Request for pay':
+            #Request of payment by talent
+            Notification.objects.create(user=gig.poster, title=title, message=f'Talent {request.user.username} has requested payment for gig <a href="{gig_url}">{gig.title}</a>'
+            )
+            return Response({'message': 'Payment requested'})
+            
+        elif title == 'Request for acceptance':
+            #Request of gig deliverable acceptance 
+            Notification.objects.create(user=gig.poster, title=title, message=f'Talent {request.user.username} has requested acceptance of deliverable for gig <a href="{gig_url}">{gig.title}</a>'
+            )
+            return Response({'message': 'Gig deliverable acceptance requested'})
+        raise exceptions.ValidationError({'detail': 'Please provide valid notification request type'})
+
