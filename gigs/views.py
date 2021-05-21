@@ -214,8 +214,33 @@ def award_view(request, id):
         Notification.objects.create(user=talent.user, title=title, message=message)
     return Response({'message': 'Gig awarded'})
 
+# Invite talent to apply gig
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def invite_view(request, id):
-    pass
+    # Check if gig or talent exists
+    try:
+        gig = Gig.objects.get(pk=id)
+        #Talent id store in request data talent key
+        talent_fav = User.objects.get(pk=request.data['talent']).talent_fav
+    except:
+        raise exceptions.NotFound({'detail': 'Talent or gig not found.'})
+    
+    if gig.poster != request.user:
+        raise exceptions.PermissionDenied({'detail': 'Only gig poster can invite applicant to the gig'})
+    
+    #Can't invite talent to closed, expired or already awarded gig
+    if (gig.is_closed) or (gig.expired_at.date() < timezone.now().date()) or gig.winner:
+        return Response({'detail': 'Can\'t invite talent to closed or expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    #Add gig to TalentFav invited field
+    talent_fav.invited.add(gig)
+
+    #Front end url of gig page
+    gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+    Notification.objects.create(user=talent_fav.user, title='Gig invite', message=f'Hey, someone take notices of your profile, please heads over to <a href="{gig_url}">{gig.title}</a>')
+
+    return Response({'message': 'Invite success'})
 
 def hirer_view(request, id):
     pass
