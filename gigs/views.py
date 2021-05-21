@@ -102,15 +102,29 @@ def apply_view(request, id):
         raise exceptions.PermissionDenied({'detail': 'Only talent can apply gig'})
     #Check if gig expired, can't apply expired gig
     if gig.expired_at.date() < timezone.now().date():
-        return Response({'detail': 'Can\' apply expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+        return Response({'detail': 'Can\'t apply expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
     
     talent_fav = TalentFav.objects.get(user=request.user)
     talent_fav.applied.add(gig)
     return Response({'message':'Apply gig successfully'})
 
-
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def withdraw_view(request, id):
-    pass
+    #Check if gig exists
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.PermissionDenied({'detail': 'Gig not found'})
+    #Check if user is talent, only talent can withdraw gig
+    if request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can apply gig'})
+    #Check if gig expired, can't withdraw expired gig
+    if gig.expired_at.date() < timezone.now().date():
+        return Response({'detail': 'Can\'t withdraw application of expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    talent_fav = TalentFav.objects.get(user=request.user)
+    talent_fav.applied.remove(gig)
+    return Response({'message':'Withdraw gig successfully'})
 
 def close_view(request, id):
     pass
