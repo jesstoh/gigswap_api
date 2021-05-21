@@ -28,9 +28,9 @@ def view_index(request):
     elif request.GET.get('action') == 'delete' and request.method == 'POST':
         try:
             #Get notification id to be deleted store in request data
-            notifications_ids = request.data.get('notification_id')
+            notification_ids = request.data.get('notification_id')
             #Filter and delete notifications, only user can delete own notifications
-            notifications = Notification.objects.filter(id__in=notifications_ids, user=request.user)
+            notifications = Notification.objects.filter(id__in=notification_ids, user=request.user)
             if notifications:
                 return Response({'message': 'Delete success'})
             else:
@@ -62,3 +62,22 @@ def view_index(request):
             return Response({'message': 'Gig deliverable acceptance requested'})
         raise exceptions.ValidationError({'detail': 'Please provide valid notification request type'})
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def view_read(request):
+    # Read all notifications
+    if request.data.get('all') == True:
+        Notification.objects.filter(user=request.user).update(is_read=True)
+        return Response({'message': 'Read all notifications'})
+    else:
+        #Read notifications based on id provided in array of notification_id in request.data
+        notification_ids = request.data.get('notification_id')
+        try:
+            notifications = Notification.objects.filter(id__in=notification_ids, user=request.user, is_read=False)
+            if notifications:
+                notifications.update(is_read=True)
+                return Response({'message': 'Read success'})
+            else:
+                return Response({'message': 'No notification to read'})
+        except:
+            raise exceptions.ValidationError({'detail':'Please provide valid notifications id'})
