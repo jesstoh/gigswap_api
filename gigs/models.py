@@ -26,7 +26,7 @@ class Gig(models.Model):
     address = models.CharField(max_length=255, null=True, blank=True)
     postal_code = models.IntegerField(null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
-    close = models.BooleanField(default=False)
+    is_closed = models.BooleanField(default=False)
     winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gig_winner', null=True, blank=True)
     completed = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
