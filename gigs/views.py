@@ -243,8 +243,7 @@ def invite_view(request, id):
 
     return Response({'message': 'Invite success'})
 
-def hirer_view(request, id):
-    pass
+
 
 # Gig poster confirm acceptance of deliverable of gig
 @api_view(['PUT'])
@@ -264,3 +263,14 @@ def complete_gig_view(request, id):
         return Response({'message': 'Gig completion is updated'})
     
     return Response({'detail': 'Only can confirm gig which has been awarded'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def hirer_view(request):
+    if not request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only hirer can access'})
+
+    gigs = Gig.objects.filter(poster=request.user)
+    gigs_serialized = GigSerializer(gigs, many=True)
+
+    return Response(gigs_serialized.data)
