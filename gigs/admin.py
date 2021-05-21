@@ -3,6 +3,6 @@ from gigs.models import Gig
 
 # Register your models here.
 class GigAdmin(admin.ModelAdmin):
-    list_display = ['poster', 'title']    
+    list_display = ['poster', 'title', 'is_closed']    
 
 admin.site.register(Gig, GigAdmin)

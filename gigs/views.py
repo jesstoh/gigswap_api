@@ -7,6 +7,7 @@ from rest_framework import exceptions
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from datetime import timedelta
 from gigs.models import Gig
 from categories.models import Subcategory
 from gigs.serializers import GigSerializer
@@ -139,6 +140,7 @@ def withdraw_view(request, id):
     talent_fav.applied.remove(gig)
     return Response({'message':'Withdraw gig successfully'})
 
+#Gig poster close gig without award
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def close_view(request, id):
@@ -151,8 +153,10 @@ def close_view(request, id):
     if gig.poster != request.user:
         raise exceptions.PermissionDenied({'detail': 'Only gig poster can close gig'})
     #Only can close open gig
-    if (gig.expired_at.date() < timezone.now().date()) or (gig.is_closed):
-        return Response({'detail': 'Can\'t close expired or already closed gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    # if (gig.expired_at.date() < timezone.now().date()) or (gig.is_closed):
+    #     return Response({'detail': 'Can\'t close expired or already closed gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    if gig.is_closed:
+        return Response({'detail': 'Can\'t close already closed gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
 
     #Set gig as closed
     gig.is_closed = True
@@ -161,12 +165,54 @@ def close_view(request, id):
     gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
     #Create notification entry for each applicant
     for talent in gig.talent_applied.all():
-        Notification.objects.create(user=talent.user, title=f'Gig closed', message=f'Gig <a href="{gig_url}">{gig.title}</a> you applied has been closed.')
+        Notification.objects.create(user=talent.user, title=f'Gig closed', message=f'Gig <a href="{gig_url}">{gig.title}</a> you applied has been closed without award.')
 
     return Response({'message': 'Gig is closed'})
 
+#Gig poster award gig to talent
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def award_view(request, id):
-    pass
+    #Check if gig exists
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Git not found'})
+    #Only gig poster can award gig
+    if gig.poster != request.user:
+        raise exceptions.PermissionDenied({'detail': 'Only gig poster can award gig'})
+    #Cannot award already fully closed gig or gig expired more than 60 days ago
+    if (gig.is_closed) or (gig.expired_at.date() + timedelta(days=60) < timezone.now().date()) :
+        return Response({'detail': 'Can\'t award already archived gig or gig expired 60 days ago'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    # Check if applicant to be awarded exists
+    try:
+        winner = User.objects.get(pk=request.data['winner'])
+    except:
+        raise exceptions.NotFound({'detail': 'Applicant not found'})
+    # If user to be award didn't apply the gig
+    if winner.is_hirer or winner.talent_fav not in gig.talent_applied.all():
+        raise exceptions.NotFound({'detail': 'Applicant didn\'t apply the gig'})
+
+    # Add applicant as winner
+    gig.winner = winner
+    gig.save()
+    
+    #Front end url of gig page
+    gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+    #Send notifications to applicant
+    for talent in gig.talent_applied.all():
+        if talent.user == winner:
+            #send congrat notification to winner
+            message = f'Congrats! Gig <a href="{gig_url}">{gig.title}</a> has been awarded to you.'
+            title = 'Gig Award'
+        else:
+            #inform other users about gig awarded other candidate
+            title = 'Gig closed'
+            message = f'Gig <a href="{gig_url}">{gig.title}</a> has been awarded to other candidate. Fret not, find more suitable gigs at MyGigs recommended tab.'
+
+        Notification.objects.create(user=talent.user, title=title, message=message)
+    return Response({'message': 'Gig awarded'})
 
 def invite_view(request, id):
     pass
