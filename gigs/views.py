@@ -9,6 +9,7 @@ from gigs.models import Gig
 from categories.models import Subcategory
 from gigs.serializers import GigSerializer
 from accounts.models import User
+from talents.models import TalentFav
 
 # Create your views here.
 @api_view(['GET', 'POST'])
@@ -60,11 +61,17 @@ def show_view(request, id):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def save_view(request, id):
+    #Check if gig exists
     try:
         gig = Gig.objects.get(pk=id)
     except:
         raise exceptions.NotFound({'detail': 'Gig not found'})
-    
+    #Check if user is talent, only talent can save gig
+    if request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can save gig'})
+    talent_fav = TalentFav.objects.get(user=request.user)
+    talent_fav.saved.add(gig)
+    return Response({'message': 'Gig saved'})
     
 def unsave_view(request, id):
     pass
