@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from accounts.models import User
+from accounts.models import User, TalentProfile
+from categories.serializers import SubcategorySerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,3 +15,14 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class TalentProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    skill = SubcategorySerializer(read_only=True, many=True)
+    class Meta:
+        model = TalentProfile
+        fields = ['id', 'user', 'bio', 'remote', 'fixed_term', 'skill','image']
+
+
+
+
