@@ -8,6 +8,9 @@ class HirerProfileAdmin(admin.ModelAdmin):
 class TalentProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'remote', 'country']
 
-admin.site.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['username', 'is_hirer']
+
+admin.site.register(User, UserAdmin)
 admin.site.register(HirerProfile, HirerProfileAdmin)
 admin.site.register(TalentProfile, TalentProfileAdmin)

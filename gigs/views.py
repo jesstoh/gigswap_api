@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +12,10 @@ from categories.models import Subcategory
 from gigs.serializers import GigSerializer
 from accounts.models import User
 from talents.models import TalentFav
+from notifications.models import Notification
+
+# Get base url of front end 
+BASE_URL = os.environ['BASE_URL']
 
 # Create your views here.
 @api_view(['GET', 'POST'])
@@ -103,8 +108,16 @@ def apply_view(request, id):
     #Check if gig expired, can't apply expired gig
     if gig.expired_at.date() < timezone.now().date():
         return Response({'detail': 'Can\'t apply expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    user = request.user
+    talent_url = BASE_URL + 'talents/' + str(user.id) + '/'
+    gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+    #Create new notification object to notify gig owner/poster
+    Notification.objects.create(
+    user=gig.poster, 
+    title='New application', 
+    message=f'<a href="{talent_url}">{user.username}</a>  has applied your gig <a href="{gig_url}">{gig.title}</a>.')
     
-    talent_fav = TalentFav.objects.get(user=request.user)
+    talent_fav = TalentFav.objects.get(user=user)
     talent_fav.applied.add(gig)
     return Response({'message':'Apply gig successfully'})
 
