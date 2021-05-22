@@ -114,3 +114,13 @@ def talent_review_show(request, id):
             raise exceptions.PermissionDenied({'detail': 'Only review creator or admin can delete review'})
         review.delete()
         return Response({'message':'Review delete success.'})
+
+    elif request.method == 'PUT':
+        #Only review creator can edit review
+        if request.user != review.hirer:
+            raise exceptions.PermissionDenied({'detail': 'Only review creator can edit review'})
+        
+        review = TalentReviewSerializer(instance=review, data=request.data, context={'request':request})
+        if review.is_valid(raise_exception=True):
+            review.save()
+            return Response(review.data)
