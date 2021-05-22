@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'categories',
     'reviews',
     'notifications',
-    'talents'
+    'talents',
+    'hirers'
 ]
 
 MIDDLEWARE = [
