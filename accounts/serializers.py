@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    skill = SubcategorySerializer(read_only=True, many=True)
+    skills = SubcategorySerializer(read_only=True, many=True)
     class Meta:
         model = TalentProfile
         fields = '__all__'
