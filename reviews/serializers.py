@@ -10,8 +10,8 @@ class TalentReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TalentReview
-        fields = ('gig', 'hirer', 'rating', 'is_ontime', 'quality', 'recommended', 'description', 'created_at')
-        read_only_fields = ('hirer', 'created_at', 'gig,')
+        fields = ('id','gig', 'hirer', 'rating', 'is_ontime', 'quality', 'recommended', 'description', 'created_at')
+        read_only_fields = ('id', 'hirer', 'created_at', 'gig,')
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -28,8 +28,8 @@ class HirerReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HirerReview
-        fields = ('gig', 'talent', 'rating', 'payment_ontime', 'scope', 'description', 'created_at')
-        read_only_fields = ('gig', 'talent', 'created_at', 'gig,')
+        fields = ('id','gig', 'talent', 'rating', 'payment_ontime', 'scope', 'description', 'created_at')
+        read_only_fields = ('id', 'gig', 'talent', 'created_at',)
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -37,3 +37,11 @@ class HirerReviewSerializer(serializers.ModelSerializer):
         talent = request.user 
         hirer_review = HirerReview.objects.create(**validated_data, gig=gig, talent=talent, hirer=gig.poster)
         return hirer_review
+
+    # def update(self, instance, validated_data):
+    #     request = self.context.get('request')
+        
+    #     gig = Gig.objects.get(id=request.data.get('gig_id'))
+    #     talent = request.user 
+    #     hirer_review = HirerReview.objects.create(**validated_data, gig=gig, talent=talent, hirer=gig.poster)
+    #     return hirer_review

@@ -64,9 +64,34 @@ def review_talent(request):
         talent_review.save() #Create review if valid
         return Response(talent_review.data)
 
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def hirer_review_show(request, id):
-    pass
+    try:
+        review = HirerReview.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Review not found'})
 
+    if request.method == 'GET':
+        review_serialized = HirerReviewSerializer(review)
+        return Response(review_serialized.data)
+    
+    #Only review creator or admin can delete review:
+    elif request.method == 'DELETE':
+        if (request.user != review.talent) and (not request.user.is_staff):
+            raise exceptions.PermissionDenied({'detail': 'Only review creator or admin can delete review'})
+        review.delete()
+        return Response({'message':'Review delete success.'})
+    
+    elif request.method == 'PUT':
+        #Only review creator can edit review
+        if request.user != review.talent:
+            raise exceptions.PermissionDenied({'detail': 'Only review creator can edit review'})
+        
+        review = HirerReviewSerializer(instance=review, data=request.data, context={'request':request})
+        if review.is_valid(raise_exception=True):
+            review.save()
+            return Response(review.data)
 
 def talent_review_show(request, id):
     pass
