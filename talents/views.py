@@ -6,6 +6,7 @@ from rest_framework import exceptions
 from rest_framework import status
 from accounts.models import User, TalentProfile
 from accounts.serializers import TalentProfileSerializer
+from talents.serializers import TalentDetailSerializer
 
 # Create your views here.
 
@@ -21,3 +22,21 @@ def view_index(request):
         return Response(talents_serialized.data)
     else:
         raise exceptions.PermissionDenied({'detail': 'Only hirers or admin can access talents list'})
+
+
+#Show detail of talent
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_show(request, id):
+    #Check if talent exists
+    try:
+        talent = User.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Talent not found'})
+    # Check if talent completed the profile
+    if not talent.is_profile_complete:
+        raise exceptions.NotFound({'detail':'Talent profile not found'})
+
+    talent_details = TalentDetailSerializer(talent)
+    return Response(talent_details.data)
+    
