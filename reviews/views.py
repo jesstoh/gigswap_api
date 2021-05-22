@@ -108,4 +108,9 @@ def talent_review_show(request, id):
         review_serialized = TalentReviewSerializer(review)
         return Response(review_serialized.data)
 
-    
+    #Only review creator or admin can delete review:
+    elif request.method == 'DELETE':
+        if (request.user != review.hirer) and (not request.user.is_staff):
+            raise exceptions.PermissionDenied({'detail': 'Only review creator or admin can delete review'})
+        review.delete()
+        return Response({'message':'Review delete success.'})
