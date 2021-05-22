@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from accounts.models import User, TalentProfile
 from categories.serializers import SubcategorySerializer
+from categories.models import Subcategory
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,8 +21,32 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     skill = SubcategorySerializer(read_only=True, many=True)
     class Meta:
         model = TalentProfile
-        fields = ['id', 'user', 'bio', 'remote', 'fixed_term', 'skill','image']
+        fields = '__all__'
+        # fields = ['id', 'user', 'bio', 'remote', 'fixed_term', 'skills','image']
+        read_only_fields = ('id', 'user')
 
+    def create(self, validated_data):
+        request = self.context.get('request')
+        profile = TalentProfile.objects.create(**validated_data, user=request.user)
+        skill_data = request.data['skills']
+        skills = []
+        for data in skill_data:
+            skill_id = data['id']
+            skill = Subcategory.objects.get(pk=skill_id)
+            skills.append(skill)
+        profile.skills.add(*skills)
+        return profile
 
+    def update(self, instance, validated_data):
+        profile = super().update(instance, validated_data)
+        request = self.context.get('request')
+        skill_data = request.data['skills']
+        skills = []
+        for data in skill_data:
+            skill_id = data['id']
+            skill = Subcategory.objects.get(pk=skill_id)
+            skills.append(skill)
+        profile.skills.set(skills)
+        return profile
 
 
