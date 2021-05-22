@@ -15,7 +15,7 @@ class TalentReviewSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        gig = Gig.objects.get(id=validated_data['gig_id'])
+        gig = Gig.objects.get(id=request.data.get('gig_id'))
         hirer = request.user
         talent = gig.winner
         talent_review = TalentReview.objects.create(**validated_data, gig=gig, talent=talent, hirer=hirer)

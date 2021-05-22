@@ -37,8 +37,32 @@ def review_hirer(request):
         hirer_review.save() #Create review if valid
         return Response(hirer_review.data)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def review_talent(request):
-    pass
+    gig_id = request.data.get('gig_id')
+    #Check if gig_id is send in request data
+    if gig_id is None:
+        raise exceptions.ValidationError({'detail': 'Gig id is required.'})
+
+    #Check if gig exists   
+    try:
+        gig = Gig.objects.get(pk=gig_id) 
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+
+    #Only gig poster can review hired talent
+    if gig.poster != request.user:
+        raise exceptions.PermissionDenied({'detail': 'Only gig poster can review hired talent'})
+
+    #Check if review has been created
+    if TalentReview.objects.filter(gig=gig).exists():
+        return Response({'detail': 'Review already been created, no duplicate review is allowed'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    talent_review = TalentReviewSerializer(data=request.data, context={'request': request})
+    if talent_review.is_valid(raise_exception=True):
+        talent_review.save() #Create review if valid
+        return Response(talent_review.data)
 
 def hirer_review_show(request, id):
     pass
