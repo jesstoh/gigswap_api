@@ -2,6 +2,7 @@ from rest_framework import serializers
 from accounts.models import User, TalentProfile, HirerProfile
 from categories.serializers import SubcategorySerializer
 from categories.models import Subcategory
+from gigs.models import Gig
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +20,12 @@ class UserSerializer(serializers.ModelSerializer):
 class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     skills = SubcategorySerializer(read_only=True, many=True)
+    gigs_won = serializers.SerializerMethodField('gigs_won_count') #Quantity of Gig won
+
+    #Get set of won gigs
+    def gigs_won_count(self, obj):        
+        return Gig.objects.filter(winner=obj.user).count()
+
     class Meta:
         model = TalentProfile
         fields = '__all__'
