@@ -100,4 +100,15 @@ def profile_view(request):
             profile = TalentProfile.objects.get(user=user)
             profile_serialized = TalentProfileSerializer(profile)
         return Response(profile_serialized.data)
-   
+   #Edit profile
+    else:
+        if user.is_hirer:
+            profile = HirerProfile.objects.get(user=user)
+            profile = HirerProfileSerializer(instance=profile, data=request.data)
+        else:
+            profile = TalentProfile.objects.get(user=user)
+            profile = TalentProfileSerializer(instance=profile, data=request.data, context={'request': request})
+        if profile.is_valid(raise_exception=True):
+            profile.save()
+            return Response(profile.data)
+                
