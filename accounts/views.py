@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from accounts.models import User
 from accounts.serializers import UserSerializer
 from talents.models import TalentFav
+from hirers.models import HirerFav
 
 # Create your views here.
 
@@ -24,6 +25,10 @@ def register_view(request):
             #Create a fav object if user is talent
             if not user_obj.is_hirer:
                 TalentFav.objects.create(user=user_obj)
+            elif (user_obj.is_hirer) and (not user_obj.is_staff):
+                #Create a HirerFav object if user is hirer and not admin
+                HirerFav.objects.create(user=user_obj)
+
             # Login after register
             # return Response(user.data)
             # to change to login later
