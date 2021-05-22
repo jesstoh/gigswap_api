@@ -9,4 +9,4 @@ class HirerFav(models.Model):
     saved = models.ManyToManyField(TalentProfile, related_name='talent_saved')
 
     def __str__(self):
-        return self.user
+        return self.user.username
