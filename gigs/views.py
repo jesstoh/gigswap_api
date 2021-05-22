@@ -26,10 +26,15 @@ def index_view(request):
     if request.method == 'POST':
         if not request.user.is_hirer:
             raise exceptions.PermissionDenied({'detail': 'Only hirer can create gig listing'})
+
+        # Only hirer with completed profile can create gig
+        if not request.user.is_profile_complete:
+            raise exceptions.PermissionDenied({'details': 'Only hirer with completed profile can create gig'})
         gig = GigSerializer(data=request.data, context={'request':request})
         if gig.is_valid(raise_exception=True):
             gig.save()
         return Response(gig.data, status=status.HTTP_201_CREATED)
+        
     if request.method == 'GET':
         gigs = Gig.objects.all()
         gigs_serializer = GigSerializer(gigs, many=True)
