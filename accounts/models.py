@@ -7,6 +7,7 @@ from categories.models import Subcategory
 class User(AbstractUser):
     email = models.EmailField(max_length=255, unique=True)
     is_hirer = models.BooleanField(default=False) #Determine if user is hirer or talent
+    is_profile_complete = models.BooleanField(default=False) #Determine if user has completed profile
 
 # Model for profile of hirer
 class HirerProfile(models.Model):

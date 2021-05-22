@@ -2,12 +2,11 @@ from rest_framework import serializers
 from accounts.models import User, TalentProfile
 from categories.serializers import SubcategorySerializer
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','first_name', 'last_name', 'username', 'email', 'password', 'is_hirer', 'is_staff']
-        read_only_fields = ('id',)
+        fields = ['id','first_name', 'last_name', 'username', 'email', 'password', 'is_hirer', 'is_staff', 'is_active', 'is_profile_complete']
+        read_only_fields = ('id', 'is_staff', 'is_active','is_profile_complete')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
