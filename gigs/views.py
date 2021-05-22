@@ -106,10 +106,16 @@ def apply_view(request, id):
     #Check if user is talent, only talent can apply gig
     if request.user.is_hirer:
         raise exceptions.PermissionDenied({'detail': 'Only talent can apply gig'})
+
+    user = request.user
+    # Check if user has completed profile, before can apply gig
+    if not user.is_profile_complete:
+        raise exceptions.PermissionDenied({'detail': 'Only talent with complete profile can apply gig'})
+
     #Check if gig expired, can't apply expired gig
     if gig.expired_at.date() < timezone.now().date():
         return Response({'detail': 'Can\'t apply expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
-    user = request.user
+    
     talent_url = BASE_URL + 'talents/' + str(user.id) + '/'
     gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
     #Create new notification object to notify gig owner/poster
