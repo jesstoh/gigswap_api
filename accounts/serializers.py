@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import User, TalentProfile
+from accounts.models import User, TalentProfile, HirerProfile
 from categories.serializers import SubcategorySerializer
 from categories.models import Subcategory
 
@@ -48,5 +48,18 @@ class TalentProfileSerializer(serializers.ModelSerializer):
             skills.append(skill)
         profile.skills.set(skills)
         return profile
+
+class HirerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HirerProfile
+        fields = "__all__"
+        read_only_fields = ('id', 'user',)
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        profile = HirerProfile.objects.create(**validated_data, user=request.user)    
+        return profile
+  
+
 
 
