@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import exceptions
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.exceptions import ValidationError
-from accounts.models import User
+from accounts.models import User, TalentProfile, HirerProfile
 from accounts.serializers import UserSerializer, HirerProfileSerializer, TalentProfileSerializer
 from talents.models import TalentFav
 from hirers.models import HirerFav
@@ -86,5 +86,18 @@ def profile_view(request):
                 user.save()
                 return Response(profile.data)
 
-                
-
+    #Check if profile exists for get and put route
+    if not user.is_profile_complete:
+        raise exceptions.NotFound({'detail': 'Profile not found'})
+    
+    #Get profile of user
+    if request.method == 'GET':
+        # Find profile of user
+        if user.is_hirer:
+            profile = HirerProfile.objects.get(user=user)
+            profile_serialized = HirerProfileSerializer(profile)
+        else:
+            profile = TalentProfile.objects.get(user=user)
+            profile_serialized = TalentProfileSerializer(profile)
+        return Response(profile_serialized.data)
+   
