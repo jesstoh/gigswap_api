@@ -13,7 +13,7 @@ def add_one_month():
 class Gig(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    poster = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gig_owner')
+    poster = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gigs_owned')
     title = models.CharField(max_length=255, null=False)
     description = models.TextField(null=False)
     subcategories = models.ManyToManyField(Subcategory, related_name='gigs')
@@ -27,7 +27,7 @@ class Gig(models.Model):
     postal_code = models.IntegerField(null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
     is_closed = models.BooleanField(default=False)
-    winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gig_winner', null=True, blank=True)
+    winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gigs_won', null=True, blank=True)
     is_completed = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
     is_updated = models.BooleanField(default=False)
