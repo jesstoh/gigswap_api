@@ -26,7 +26,7 @@ class TalentProfile(models.Model):
     bio = models.TextField()
     remote = models.BooleanField(default=False) #prefer remote only
     fixed_term = models.BooleanField(default=False) #prefer fixed term only
-    skill = models.ManyToManyField(Subcategory, related_name="talent_profile") #Skill set category to find match gigs
+    skills = models.ManyToManyField(Subcategory, related_name="talent_profile") #Skill set category to find match gigs
     min_pay = models.IntegerField(null=False) #min hour pay
     image = models.URLField(null=False)
     address = models.CharField(max_length=255, blank=True)
