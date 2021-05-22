@@ -6,7 +6,7 @@ from rest_framework import exceptions
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.exceptions import ValidationError
 from accounts.models import User
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserSerializer, HirerProfileSerializer, TalentProfileSerializer
 from talents.models import TalentFav
 from hirers.models import HirerFav
 
@@ -66,3 +66,25 @@ def login_view(request):
         refresh = RefreshToken.for_user(user)
 
         return Response({'refresh': str(refresh), 'access': str(refresh.access_token), 'user': user_serialized})
+
+#Create, edit and get profile of login hirer or talent
+@api_view(['GET', 'PUT', 'POST'])
+@permission_classes([IsAuthenticated])
+def profile_view(request):
+    user = request.user
+    if request.method == 'POST':
+        if user.is_profile_complete:
+            raise exceptions.PermissionDenied({'detail': 'Profile only exists'})
+        else:
+            if user.is_hirer:
+                profile = HirerProfileSerializer(data=request.data, context={'request':request})
+            else:
+                profile = TalentProfileSerializer(data=request.data, context={'request': request})
+            if profile.is_valid(raise_exception=True):
+                profile.save()
+                user.is_profile_complete = True
+                user.save()
+                return Response(profile.data)
+
+                
+

@@ -50,6 +50,7 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         return profile
 
 class HirerProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     class Meta:
         model = HirerProfile
         fields = "__all__"
