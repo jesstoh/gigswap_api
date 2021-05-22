@@ -6,7 +6,8 @@ from rest_framework import exceptions
 from rest_framework import status
 from accounts.models import User, TalentProfile
 from accounts.serializers import TalentProfileSerializer
-from talents.serializers import TalentDetailSerializer
+from talents.serializers import TalentDetailSerializer, TalentFavSerializer
+from talents.models import TalentFav
 
 # Create your views here.
 
@@ -39,4 +40,17 @@ def view_show(request, id):
 
     talent_details = TalentDetailSerializer(talent)
     return Response(talent_details.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_fav(request):
+    try:
+        talent_fav = TalentFav.objects.get(user=request.user)
+    except:
+        raise exceptions.NotFound({'detail': 'Talent favorite list not found'})
+
+    talent_fav_serialized = TalentFavSerializer(talent_fav)
+    return Response(talent_fav_serialized.data)
+
     
