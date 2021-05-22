@@ -9,7 +9,7 @@ from reviews.models import TalentReview, HirerReview
 from gigs.models import Gig
 
 # Create your views here.
-#Reviewing hirer
+#Review hirer
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def review_hirer(request):
@@ -37,6 +37,7 @@ def review_hirer(request):
         hirer_review.save() #Create review if valid
         return Response(hirer_review.data)
 
+#Review talent
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def review_talent(request):
@@ -64,6 +65,7 @@ def review_talent(request):
         talent_review.save() #Create review if valid
         return Response(talent_review.data)
 
+#Get, edit and delete particular hirer's review
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def hirer_review_show(request, id):
@@ -93,5 +95,17 @@ def hirer_review_show(request, id):
             review.save()
             return Response(review.data)
 
+#Get, edit and delete particular talent's review
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def talent_review_show(request, id):
-    pass
+    try:
+        review = TalentReview.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Review not found'})
+
+    if request.method == 'GET':
+        review_serialized = TalentReviewSerializer(review)
+        return Response(review_serialized.data)
+
+    
