@@ -18,6 +18,7 @@ class HirerProfile(models.Model):
     postal_code = models.IntegerField(null=True)
     country = models.CharField(max_length=100, blank=True)
     contact = models.CharField(max_length=20, blank=True)
+    image = models.URLField(default="https://i.imgur.com/vWQLCe6.png")
 
 # Storing talent profile, talent not allowed to apply job if profile is not created
 class TalentProfile(models.Model):
