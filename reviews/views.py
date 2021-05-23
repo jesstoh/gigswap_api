@@ -76,9 +76,19 @@ def review_talent(request):
     if TalentReview.objects.filter(gig=gig).exists():
         return Response({'detail': 'Review already been created, no duplicate review is allowed'}, status=status.HTTP_412_PRECONDITION_FAILED)
 
+    user = request.user
     talent_review = TalentReviewSerializer(data=request.data, context={'request': request})
     if talent_review.is_valid(raise_exception=True):
         talent_review.save() #Create review if valid
+
+        review_url = BASE_URL + 'talent-review/' + str(talent_review.data['id']) + '/'
+        hirer_url = BASE_URL + 'hirers/' + str(user.id) + '/'
+        #Create new notification object to notify talent.
+        Notification.objects.create(
+        user=gig.winner, 
+        title='New review', 
+        message=f'<a href="{hirer_url}">{user.username}</a>  has provided a <a href="{review_url}">review</a> fore recently completed gig.')
+
         return Response(talent_review.data)
 
 #Get, edit and delete particular hirer's review
