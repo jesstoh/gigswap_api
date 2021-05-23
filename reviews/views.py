@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
@@ -7,8 +8,13 @@ from rest_framework import status
 from reviews.serializers import TalentReviewSerializer, HirerReviewSerializer
 from reviews.models import TalentReview, HirerReview
 from gigs.models import Gig
+from notifications.models import Notification
 
 # Create your views here.
+
+# Get base url of front end 
+BASE_URL = os.environ['BASE_URL']
+
 #Review hirer
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -32,9 +38,19 @@ def review_hirer(request):
     if HirerReview.objects.filter(gig=gig).exists():
         return Response({'detail': 'Review already been created, no duplicate review is allowed'}, status=status.HTTP_412_PRECONDITION_FAILED)
 
+    user = request.user
     hirer_review = HirerReviewSerializer(data=request.data, context={'request': request})
     if hirer_review.is_valid(raise_exception=True):
         hirer_review.save() #Create review if valid
+
+        review_url = BASE_URL + 'hirer-review/' + str(hirer_review.data['id']) + '/'
+        talent_url = BASE_URL + 'talents/' + str(user.id) + '/'
+        #Create new notification object to notify gig owner/poster
+        Notification.objects.create(
+        user=gig.poster, 
+        title='New review', 
+        message=f'<a href="{talent_url}">{user.username}</a>  has provided a <a href="{review_url}">review</a> fore recently completed gig.')
+
         return Response(hirer_review.data)
 
 #Review talent
