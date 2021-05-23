@@ -11,7 +11,7 @@ from datetime import timedelta
 from gigs.models import Gig
 from categories.models import Subcategory
 from gigs.serializers import GigSerializer
-from accounts.models import User
+from accounts.models import User, TalentProfile
 from talents.models import TalentFav
 from notifications.models import Notification
 
@@ -40,8 +40,26 @@ def index_view(request):
         gigs_serializer = GigSerializer(gigs, many=True)
         return Response(gigs_serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def recommend_gig_view(request):
-    pass
+    user = request.user
+    if user.is_hirer or user.is_staff:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can view recommended gigs'})
+    
+    # Only talent with completed profile can find matched gigs
+    try:
+        talent_profile = TalentProfile.objects.get(user=user)
+    except:
+        return Response({'detail': 'Please complete your profile to get match gigs'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    #Filter active gigs based on talent preference
+    gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), subcategories__in=set(talent_profile.skills.all()), hour_rate__gte=talent_profile.min_pay, is_fixed=talent_profile.fixed_term)
+    #Show only remote gig if talent preference is remote only
+    if talent_profile.remote:
+        gigs = gigs.filter(is_remote=True)
+    gigs_serialized = GigSerializer(gigs, many=True)
+    return Response(gigs_serialized.data)
 
 @api_view(['GET', 'DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
