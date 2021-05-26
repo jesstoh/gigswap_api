@@ -36,7 +36,8 @@ def index_view(request):
         return Response(gig.data, status=status.HTTP_201_CREATED)
         
     if request.method == 'GET':
-        gigs = Gig.objects.all()
+        # Filter not expired gigs & order by dates of post
+        gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).order_by('-created_at')
         gigs_serializer = GigSerializer(gigs, many=True)
         return Response(gigs_serializer.data)
 
