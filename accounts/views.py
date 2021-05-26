@@ -14,7 +14,7 @@ from hirers.models import HirerFav
 
 
 @api_view(['POST'])
-# @authentication_classes([])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def register_view(request):
     if request.method == 'POST':
@@ -43,6 +43,7 @@ def register_view(request):
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def login_view(request):
     if request.method == 'POST':
