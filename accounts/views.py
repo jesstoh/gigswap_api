@@ -130,9 +130,10 @@ def auth_view(request):
         'isAuthenticated': True,
         'isHirer': False,
         'isAdmin': False,
-        'user': {'username': user.username}
+        'user': {'id': user.id,
+                 'username': user.username}
     }
-    if user.is_hirer: 
+    if user.is_hirer:
         data['isHirer'] = True
     elif user.is_staff:
         data['isAdmin'] = True
