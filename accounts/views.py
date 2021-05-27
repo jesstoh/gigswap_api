@@ -130,6 +130,7 @@ def auth_view(request):
         'isAuthenticated': True,
         'isHirer': False,
         'isAdmin': False,
+        'isProfileComplete': request.user.is_profile_complete,
         'user': {'id': user.id,
                  'username': user.username}
     }
