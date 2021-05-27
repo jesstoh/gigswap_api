@@ -7,11 +7,11 @@ from accounts.serializers import UserSerializer, HirerProfileSerializer
 from talents.models import TalentFav
 
 class GigSerializer(serializers.ModelSerializer):
-    poster = UserSerializer(read_only=True, many=False)
+    # poster = UserSerializer(read_only=True, many=False)
     winner = UserSerializer(read_only=True, many=False)
     subcategories = SubcategorySerializer(read_only=True, many=True)
     applicants = serializers.SerializerMethodField('get_applicants')
-    company = serializers.SerializerMethodField('get_hirer_profile')
+    poster_profile = serializers.SerializerMethodField('get_hirer_profile')
 
     #Get applicant id in a list and flatten into a list
     def get_applicants(self, obj):
@@ -19,13 +19,13 @@ class GigSerializer(serializers.ModelSerializer):
         return applicants
     
     def get_hirer_profile(self, obj):       
-        # return HirerProfileSerializer(obj.poster.hirer_profile).data
-        return obj.poster.hirer_profile.company
+        return HirerProfileSerializer(obj.poster.hirer_profile).data
+        # return obj.poster.hirer_profile.company
 
     class Meta:
         model = Gig
         fields = "__all__"
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'poster',)
         
 
     def create(self, validated_data):
