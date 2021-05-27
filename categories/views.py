@@ -9,18 +9,21 @@ from categories.models import Category, Subcategory
 from categories.serializers import CategorySerializer, SubcategorySerializer
 
 # Create your views here.
-@api_view(['GET', 'POST'])
-@permission_classes([IsAdminUser])
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def categories_index(request):
     if request.method == 'GET':
         categories = Category.objects.all()
         cat_serializer = CategorySerializer(categories, many=True)
         return Response(cat_serializer.data)
-    elif request.method == 'POST':
-        category = CategorySerializer(data=request.data)
-        if category.is_valid(raise_exception=True):
-            category.save()
-            return Response(category.data, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def categories_create(request):
+    category = CategorySerializer(data=request.data)
+    if category.is_valid(raise_exception=True):
+        category.save()
+        return Response(category.data, status=status.HTTP_201_CREATED)
 
 # Admin view subcategories and create new subcategory
 @api_view(['GET', 'POST'])
