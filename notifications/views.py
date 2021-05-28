@@ -20,7 +20,7 @@ BASE_URL = os.environ['BASE_URL']
 @permission_classes([IsAuthenticated])
 def view_index(request):
     if request.method == 'GET':
-        notifications = Notification.objects.filter(user=request.user)
+        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
         notifications_serialized = NotificationSerializer(notifications, many=True)
         return Response(notifications_serialized.data)
     
