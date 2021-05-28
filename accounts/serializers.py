@@ -53,8 +53,8 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         skill_data = request.data['skills']
         skills = []
-        for data in skill_data:
-            skill_id = data['id']
+        for skill_id in skill_data:
+            # skill_id = data['id']
             skill = Subcategory.objects.get(pk=skill_id)
             skills.append(skill)
         profile.skills.set(skills)
