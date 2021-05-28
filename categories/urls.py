@@ -7,6 +7,7 @@ urlpatterns = [
     path('', categories_index, name='categories_index'),
     path('create/', categories_create, name='create_category'),
     path('sub/', subcat_index, name='subcat_index'),
+    path('sub/create/', subcat_create, name='create_subcat'),
     path('<uuid:id>/', categories_show, name='show_category'),
     path('sub/<uuid:id>/', subcat_show, name='show_subcat')
 ]

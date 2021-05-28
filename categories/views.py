@@ -13,7 +13,7 @@ from categories.serializers import CategorySerializer, SubcategorySerializer
 @permission_classes([IsAuthenticated])
 def categories_index(request):
     if request.method == 'GET':
-        categories = Category.objects.all()
+        categories = Category.objects.all().order_by('name')
         cat_serializer = CategorySerializer(categories, many=True)
         return Response(cat_serializer.data)
 
@@ -25,17 +25,22 @@ def categories_create(request):
         category.save()
         return Response(category.data, status=status.HTTP_201_CREATED)
 
-# Admin view subcategories and create new subcategory
-@api_view(['GET', 'POST'])
-@permission_classes([IsAdminUser])
+# Authenticated user can view subcategories
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def subcat_index(request):
     #Get all subcategories
     if request.method == 'GET':
-        subcats = Subcategory.objects.all()
+        subcats = Subcategory.objects.all().order_by('name')
         subcats_serializer = SubcategorySerializer(subcats, many=True)
         return Response(subcats_serializer.data)
+
+# Only admin can create new subcategory
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def subcat_create(request):
     #Create new subcategories
-    elif request.method == 'POST':
+    if request.method == 'POST':
         #Get category id from request post data
         cat_id = request.data.get('category')
         if cat_id is None:
@@ -47,7 +52,6 @@ def subcat_index(request):
             return Response(subcats_serializer.data)
         except:
             raise exceptions.ValidationError({'detail':'input not valid'})
-
 
 #Get, update and delete particular category by id
 @api_view(['GET', 'PUT', 'DELETE'])
