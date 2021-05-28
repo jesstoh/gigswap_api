@@ -86,11 +86,13 @@ def profile_view(request):
             else:
                 profile = TalentProfileSerializer(
                     data=request.data, context={'request': request})
-            if profile.is_valid(raise_exception=True):
+            if profile.is_valid():
                 profile.save()
                 user.is_profile_complete = True
                 user.save()
                 return Response(profile.data)
+            else:
+                raise exceptions.ValidationError({'detail':'Input not valid'})
 
     # Check if profile exists for get and put route
     if not user.is_profile_complete:
