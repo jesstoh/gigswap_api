@@ -78,7 +78,7 @@ def profile_view(request):
     if request.method == 'POST':
         if user.is_profile_complete:
             raise exceptions.PermissionDenied(
-                {'detail': 'Profile only exists'})
+                {'detail': 'Profile already exists'})
         else:
             if user.is_hirer:
                 profile = HirerProfileSerializer(
