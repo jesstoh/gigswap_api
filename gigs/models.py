@@ -28,6 +28,7 @@ class Gig(models.Model):
     country = models.CharField(max_length=100, null=True, blank=True)
     is_closed = models.BooleanField(default=False)
     winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gigs_won', null=True, blank=True)
+    flag = models.ManyToManyField(User, related_name='gigs_flag')
     is_completed = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
     is_updated = models.BooleanField(default=False)

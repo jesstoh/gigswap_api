@@ -25,7 +25,7 @@ class GigSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gig
         fields = "__all__"
-        read_only_fields = ('id', 'poster',)
+        read_only_fields = ('id', 'poster', 'flag')
         
 
     def create(self, validated_data):
