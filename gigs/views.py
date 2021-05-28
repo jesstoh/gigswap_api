@@ -141,12 +141,12 @@ def apply_view(request, id):
         return Response({'detail': 'Can\'t apply expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
     
     talent_url = BASE_URL + 'talents/' + str(user.id) + '/'
-    gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
+    # gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
     #Create new notification object to notify gig owner/poster
     Notification.objects.create(
     user=gig.poster, 
     title='New application', 
-    message=f'<a href="{talent_url}">{user.username}</a>  has applied your gig <a href="{gig_url}">{gig.title}</a>.')
+    message=f'Talent {user.username} has applied your gig {gig.title}. Check out talent\'s profile now', link=talent_url)
     
     talent_fav = TalentFav.objects.get(user=user)
     talent_fav.applied.add(gig)
@@ -195,7 +195,7 @@ def close_view(request, id):
     gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
     #Create notification entry for each applicant
     for talent in gig.talent_applied.all():
-        Notification.objects.create(user=talent.user, title=f'Gig closed', message=f'Gig <a href="{gig_url}">{gig.title}</a> you applied has been closed without award.')
+        Notification.objects.create(user=talent.user, title=f'Gig closed', message=f'Gig {gig.title} you applied has been closed without award.', link=gig_url)
 
     return Response({'message': 'Gig is closed'})
 
@@ -234,14 +234,14 @@ def award_view(request, id):
     for talent in gig.talent_applied.all():
         if talent.user == winner:
             #send congrat notification to winner
-            message = f'Congrats! Gig <a href="{gig_url}">{gig.title}</a> has been awarded to you.'
+            message = f'Congrats! Gig {gig.title} has been awarded to you.'
             title = 'Gig Award'
         else:
             #inform other users about gig awarded other candidate
             title = 'Gig closed'
-            message = f'Gig <a href="{gig_url}">{gig.title}</a> has been awarded to other candidate. Fret not, find more suitable gigs at MyGigs recommended tab.'
+            message = f'Gig {gig.title} has been awarded to other candidate. Fret not, find more suitable gigs at MyGigs recommended tab.'
 
-        Notification.objects.create(user=talent.user, title=title, message=message)
+        Notification.objects.create(user=talent.user, title=title, message=message, link=gig_url)
     return Response({'message': 'Gig awarded'})
 
 # Invite talent to apply gig
@@ -269,7 +269,7 @@ def invite_view(request, id):
     #Front end url of gig page
     gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
     #Send notification to talent
-    Notification.objects.create(user=talent_fav.user, title='Gig invite', message=f'Hey, someone take notices of your profile, please heads over to <a href="{gig_url}">{gig.title}</a>')
+    Notification.objects.create(user=talent_fav.user, title='Gig invite', message=f'Hey, someone take notices of your profile, please heads over to gig {gig.title}', link=gig_url)
 
     return Response({'message': 'Invite success'})
 

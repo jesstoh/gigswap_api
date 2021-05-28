@@ -44,12 +44,12 @@ def review_hirer(request):
         hirer_review.save() #Create review if valid
 
         review_url = BASE_URL + 'hirer-review/' + str(hirer_review.data['id']) + '/'
-        talent_url = BASE_URL + 'talents/' + str(user.id) + '/'
+        # talent_url = BASE_URL + 'talents/' + str(user.id) + '/'
         #Create new notification object to notify gig owner/poster
         Notification.objects.create(
         user=gig.poster, 
         title='New review', 
-        message=f'<a href="{talent_url}">{user.username}</a>  has provided a <a href="{review_url}">review</a> fore recently completed gig.')
+        message=f'Talent {user.username} has provided a review for recently completed gig {gig.title}.', link=review_url)
 
         return Response(hirer_review.data)
 
@@ -82,12 +82,12 @@ def review_talent(request):
         talent_review.save() #Create review if valid
 
         review_url = BASE_URL + 'talent-review/' + str(talent_review.data['id']) + '/'
-        hirer_url = BASE_URL + 'hirers/' + str(user.id) + '/'
+        # hirer_url = BASE_URL + 'hirers/' + str(user.id) + '/'
         #Create new notification object to notify talent.
         Notification.objects.create(
         user=gig.winner, 
         title='New review', 
-        message=f'<a href="{hirer_url}">{user.username}</a>  has provided a <a href="{review_url}">review</a> fore recently completed gig.')
+        message=f'Hirer {user.username} has provided a review for recently completed gig {gig.title}.', lind=review_url)
 
         return Response(talent_review.data)
 

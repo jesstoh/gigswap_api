@@ -51,13 +51,13 @@ def view_index(request):
         gig_url = BASE_URL + 'gigs/' + str(gig.id) + '/'
         if title == 'Request for pay':
             #Request of payment by talent
-            Notification.objects.create(user=gig.poster, title=title, message=f'Talent {request.user.username} has requested payment for gig <a href="{gig_url}">{gig.title}</a>'
+            Notification.objects.create(user=gig.poster, title=title, message=f'Talent {request.user.username} has requested payment for gig {gig.title}.', link=gig_url
             )
             return Response({'message': 'Payment requested'})
             
         elif title == 'Request for acceptance':
             #Request of gig deliverable acceptance 
-            Notification.objects.create(user=gig.poster, title=title, message=f'Talent {request.user.username} has requested acceptance of deliverable for gig <a href="{gig_url}">{gig.title}</a>'
+            Notification.objects.create(user=gig.poster, title=title, message=f'Talent {request.user.username} has requested acceptance of deliverable for gig {gig.title}.', link=gig_url
             )
             return Response({'message': 'Gig deliverable acceptance requested'})
         raise exceptions.ValidationError({'detail': 'Please provide valid notification request type'})
