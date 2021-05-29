@@ -8,6 +8,7 @@ from accounts.models import User, TalentProfile
 from accounts.serializers import TalentProfileSerializer
 from talents.serializers import TalentDetailSerializer, TalentFavSerializer
 from talents.models import TalentFav
+from hirers.models import HirerFav
 
 # Create your views here.
 
@@ -53,4 +54,27 @@ def view_fav(request):
     talent_fav_serialized = TalentFavSerializer(talent_fav)
     return Response(talent_fav_serialized.data)
 
-    
+#login hirer save talent
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def view_save(request, id):
+    #Check if talent and profile exist
+    try:
+        talent = User.objects.get(pk=id)
+        talent_profile = TalentProfile.objects.get(user=talent)
+    except:
+        raise exceptions.NotFound({'detail': 'Talent or Talent Profile not found'})
+    #Check if user hirer, only hirer can save talent
+    if not request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only hirer can save talent profile'})
+    hirer_fav = HirerFav.objects.get(user=request.user)
+    hirer_fav.saved.add(talent_profile)
+    return Response({'message': 'Talent saved'})
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def view_unsave(request, id):
+    pass
+
+
