@@ -71,10 +71,21 @@ def view_save(request, id):
     hirer_fav.saved.add(talent_profile)
     return Response({'message': 'Talent saved'})
 
-
+# Login hirer unsave talent profile from HirerFav list
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def view_unsave(request, id):
-    pass
+    #Check if talent and profile exist
+    try:
+        talent = User.objects.get(pk=id)
+        talent_profile = TalentProfile.objects.get(user=talent)
+    except:
+        raise exceptions.NotFound({'detail': 'Talent or Talent Profile not found'})
+    #Check if user hirer, only hirer can unsave talent
+    if not request.user.is_hirer:
+        raise exceptions.PermissionDenied({'detail': 'Only hirer can unsave talent profile'})
+    hirer_fav = HirerFav.objects.get(user=request.user)
+    hirer_fav.saved.remove(talent_profile)
+    return Response({'message': 'Talent unsaved'})
 
 
