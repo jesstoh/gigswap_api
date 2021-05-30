@@ -2,9 +2,10 @@ from rest_framework import serializers
 from gigs.models import Gig
 from categories.serializers import SubcategorySerializer
 from categories.models import Subcategory
-from accounts.models import User, HirerProfile
-from accounts.serializers import UserSerializer, HirerProfileSerializer
+from accounts.models import User, HirerProfile, TalentProfile
+from accounts.serializers import UserSerializer, HirerProfileSerializer, TalentProfileSerializer
 from talents.models import TalentFav
+
 
 class GigSerializer(serializers.ModelSerializer):
     # poster = UserSerializer(read_only=True, many=False)
@@ -13,12 +14,14 @@ class GigSerializer(serializers.ModelSerializer):
     applicants = serializers.SerializerMethodField('get_applicants')
     poster_profile = serializers.SerializerMethodField('get_hirer_profile')
 
-    #Get applicant id in a list and flatten into a list
+    # Get applicant id in a list and flatten into a list
     def get_applicants(self, obj):
-        applicants = obj.talent_applied.all().values_list('user__id', flat=True)
-        return applicants
-    
-    def get_hirer_profile(self, obj):       
+        # applicants = obj.talent_applied.all().values_list('user__id', flat=True)
+        applicant_ids = obj.talent_applied.all().values_list('user__id', flat=True)
+        applicant_profiles = TalentProfile.objects.filter(user__in=applicant_ids)
+        return TalentProfileSerializer(applicant_profiles, many=True).data
+
+    def get_hirer_profile(self, obj):
         return HirerProfileSerializer(obj.poster.hirer_profile).data
         # return obj.poster.hirer_profile.company
 
@@ -26,7 +29,6 @@ class GigSerializer(serializers.ModelSerializer):
         model = Gig
         fields = "__all__"
         read_only_fields = ('id', 'poster', 'flag')
-        
 
     def create(self, validated_data):
         request = self.context.get('request')
