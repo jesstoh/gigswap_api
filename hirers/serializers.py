@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.utils import timezone
+from accounts.models import User
 from hirers.models import HirerFav
 from gigs.models import Gig
-from accounts.serializers import UserSerializer, TalentProfileSerializer
+from accounts.serializers import UserSerializer, TalentProfileSerializer, HirerProfileSerializer
 from gigs.serializers import GigSerializer
 
 class HirerFavSerializer(serializers.ModelSerializer):
@@ -14,6 +15,8 @@ class HirerFavSerializer(serializers.ModelSerializer):
     not_paid_gigs = serializers.SerializerMethodField('gigs_not_paid') #gigs completed by not paid yet
     completed_gigs = serializers.SerializerMethodField('gigs_completed') #gigs completed with payment 
     closed_gigs = serializers.SerializerMethodField('gigs_closed') #gigs closed without award
+    # Will remove this once implement adapter in React
+    saved_talents_list = serializers.SerializerMethodField('get_saved_list')
 
 
     #Get active gigs
@@ -46,6 +49,10 @@ class HirerFavSerializer(serializers.ModelSerializer):
         gigs = Gig.objects.filter(poster=obj.user, is_closed=True)
         return GigSerializer(gigs, many=True).data
 
+    #Get saved talents in list
+    def get_saved_list(self, obj):
+        return obj.saved.all().values_list('id', flat=True)
+
     #Get set of winners from hirer's gigs
     def hired_talents_list(self, obj):
         gigs = Gig.objects.filter(poster=obj.user, winner__isnull=False)
@@ -59,5 +66,22 @@ class HirerFavSerializer(serializers.ModelSerializer):
         model = HirerFav
         fields = '__all__'
     
+
+
+class HirerDetailSerializer(serializers.ModelSerializer):
+    hirer_profile = HirerProfileSerializer(read_only=True)
+    active_gigs = serializers.SerializerMethodField('gigs_active')
+
+    #Get active gigs
+    def gigs_active(self, obj):
+        gigs = Gig.objects.filter(poster=obj, expired_at__gte=timezone.now().date(), is_closed=False, winner__isnull=True).order_by('-created_at')
+        return GigSerializer(gigs, many=True).data
+
+    class Meta:
+        model = User
+        # fields = "__all__"
+        fields = ('id', 'hirer_profile', 
+                  'username', 'first_name', 'last_name', 'email', 'active_gigs')
+        read_only_fields = ('id',)
     
 

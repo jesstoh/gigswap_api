@@ -12,7 +12,7 @@ class TalentDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = "__all__"
+        # fields = "__all__"
         fields = ('id', 'talent_profile', 'gigs_won',
                   'username', 'first_name', 'last_name', 'email')
 
