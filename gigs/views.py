@@ -150,6 +150,7 @@ def apply_view(request, id):
     
     talent_fav = TalentFav.objects.get(user=user)
     talent_fav.applied.add(gig)
+    talent_fav.saved.remove(gig) #remove gig from saved list after applying
     return Response({'message':'Apply gig successfully'})
 
 @api_view(['PUT'])
@@ -168,6 +169,7 @@ def withdraw_view(request, id):
         return Response({'detail': 'Can\'t withdraw application of expired gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
     talent_fav = TalentFav.objects.get(user=request.user)
     talent_fav.applied.remove(gig)
+    talent_fav.saved.add(gig) #aAdd gig back to save list after withdraw
     return Response({'message':'Withdraw gig successfully'})
 
 #Gig poster close gig without award
@@ -242,6 +244,9 @@ def award_view(request, id):
             message = f'Gig {gig.title} has been awarded to other candidate. Fret not, find more suitable gigs at MyGigs recommended tab.'
 
         Notification.objects.create(user=talent.user, title=title, message=message, link=gig_url)
+        #Remove gigs from talent applied list if it is awarded to the talent
+    talent_fav = TalentFav.objects.get(user=winner)
+    talent_fav.applied.remove(gig)
     return Response({'message': 'Gig awarded'})
 
 # Invite talent to apply gig
