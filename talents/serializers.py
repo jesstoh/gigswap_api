@@ -4,17 +4,23 @@ from accounts.serializers import UserSerializer, TalentProfileSerializer
 from accounts.models import User, TalentProfile
 from gigs.models import Gig
 from gigs.serializers import GigSerializer
+from reviews.models import TalentReview
 
 
 class TalentDetailSerializer(serializers.ModelSerializer):
     talent_profile = TalentProfileSerializer(read_only=True)
     gigs_won = GigSerializer(read_only=True, many=True)
+    review_count = serializers.SerializerMethodField('get_review_count')
+
+    #Get number of reviews received
+    def get_review_count(self, obj):
+        return TalentReview.objects.filter(talent=obj).count()
 
     class Meta:
         model = User
         # fields = "__all__"
         fields = ('id', 'talent_profile', 'gigs_won',
-                  'username', 'first_name', 'last_name', 'email')
+                  'username', 'first_name', 'last_name', 'email', 'review_count')
 
 
 class TalentFavSerializer(serializers.ModelSerializer):
