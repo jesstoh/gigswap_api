@@ -177,3 +177,28 @@ def hirer_review_index(request, hirer_id):
     hirer_reviews_serialized = HirerReviewSerializer(hirer_reviews, many=True)
 
     return Response({'summary': summary, 'reviews': hirer_reviews_serialized.data})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def talent_review_index(request, talent_id):
+    try:
+        talent = User.objects.get(pk=talent_id)
+    except:
+        raise exceptions.NotFound({'detail': 'Talent not found'})
+
+    # if user id is not for hirer
+    if talent.is_hirer or talent.is_staff:
+        raise exceptions.NotFound({'detail': 'Talent not found'})
+
+    # Get all reviews received by talent
+    talent_reviews = TalentReview.objects.filter(talent=talent)
+
+    #Annotating boolean field to 0 and 1
+    talent_reviews_annotated = talent_reviews.annotate(ontime=Case(When(is_ontime=True, then=Value(1)), default=0, output_field=IntegerField()), is_recommended=Case(When(recommended=True, then=Value(1)), default=0, output_field=IntegerField()))
+
+    #Get summary of reviews (average)
+    summary = talent_reviews_annotated.aggregate(avg_rating=Avg('rating'), avg_ontime=Avg('ontime'), avg_quality=Avg('quality'), avg_recommended=Avg('is_recommended'), review_count=Count('rating'))
+    talent_reviews_serialized = TalentReviewSerializer(talent_reviews, many=True)
+
+    return Response({'summary': summary, 'reviews': talent_reviews_serialized.data})
