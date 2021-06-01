@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Avg
 from talents.models import TalentFav
 from accounts.serializers import UserSerializer, TalentProfileSerializer
 from accounts.models import User, TalentProfile
@@ -11,16 +12,21 @@ class TalentDetailSerializer(serializers.ModelSerializer):
     talent_profile = TalentProfileSerializer(read_only=True)
     gigs_won = GigSerializer(read_only=True, many=True)
     review_count = serializers.SerializerMethodField('get_review_count')
+    avg_review_rating = serializers.SerializerMethodField('get_review_rating')
 
     #Get number of reviews received
     def get_review_count(self, obj):
         return TalentReview.objects.filter(talent=obj).count()
 
+     #Get average review rating
+    def get_review_rating(self, obj):
+        return TalentReview.objects.filter(talent=obj).aggregate(Avg('rating'))['rating__avg']
+
     class Meta:
         model = User
         # fields = "__all__"
         fields = ('id', 'talent_profile', 'gigs_won',
-                  'username', 'first_name', 'last_name', 'email', 'review_count')
+                  'username', 'first_name', 'last_name', 'email', 'review_count', 'avg_review_rating')
 
 
 class TalentFavSerializer(serializers.ModelSerializer):

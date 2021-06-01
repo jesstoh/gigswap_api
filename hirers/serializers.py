@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Avg
 from django.utils import timezone
 from accounts.models import User
 from hirers.models import HirerFav
@@ -73,6 +74,7 @@ class HirerDetailSerializer(serializers.ModelSerializer):
     hirer_profile = HirerProfileSerializer(read_only=True)
     active_gigs = serializers.SerializerMethodField('gigs_active')
     review_count = serializers.SerializerMethodField('get_review_count')
+    avg_review_rating = serializers.SerializerMethodField('get_review_rating')
 
     #Get active gigs
     def gigs_active(self, obj):
@@ -83,11 +85,15 @@ class HirerDetailSerializer(serializers.ModelSerializer):
     def get_review_count(self, obj):
         return HirerReview.objects.filter(hirer=obj).count()
 
+    #Get average review rating
+    def get_review_rating(self, obj):
+        return HirerReview.objects.filter(hirer=obj).aggregate(Avg('rating'))['rating__avg']
+
     class Meta:
         model = User
         # fields = "__all__"
         fields = ('id', 'hirer_profile', 
-                  'username', 'first_name', 'last_name', 'email', 'active_gigs','review_count')
+                  'username', 'first_name', 'last_name', 'email', 'active_gigs','review_count', 'avg_review_rating')
         read_only_fields = ('id',)
     
 
