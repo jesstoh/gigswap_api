@@ -1,4 +1,5 @@
 import os
+from django.db.models import Avg, Case, When, Value, IntegerField, Count
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
@@ -9,6 +10,7 @@ from reviews.serializers import TalentReviewSerializer, HirerReviewSerializer
 from reviews.models import TalentReview, HirerReview
 from gigs.models import Gig
 from notifications.models import Notification
+from accounts.models import User
 
 # Create your views here.
 
@@ -150,3 +152,28 @@ def talent_review_show(request, id):
         if review.is_valid(raise_exception=True):
             review.save()
             return Response(review.data)
+
+#Get all review related to hirer
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def hirer_review_index(request, hirer_id):
+    try:
+        user = User.objects.get(pk=hirer_id)
+    except:
+        raise exceptions.NotFound({'detail': 'Hirer not found'})
+
+    # if user id is not for hirer
+    if not user.is_hirer:
+        raise exceptions.NotFound({'detail': 'Hirer not found'})
+
+    # Get all reviews received by hirer
+    hirer_reviews = HirerReview.objects.filter(hirer=user)
+
+    #Annotating boolean field to 0 and 1
+    hirer_reviews_annotated = hirer_reviews.annotate(is_ontime=Case(When(payment_ontime=True, then=Value(1)), default=0, output_field=IntegerField()))
+
+    #Get summary of reviews (average)
+    summary = hirer_reviews_annotated.aggregate(avg_rating=Avg('rating'), avg_ontime=Avg('is_ontime'), avg_scope=Avg('scope'), review_count=Count('rating'))
+    hirer_reviews_serialized = HirerReviewSerializer(hirer_reviews, many=True)
+
+    return Response({'summary': summary, 'reviews': hirer_reviews_serialized.data})
