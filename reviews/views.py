@@ -87,7 +87,7 @@ def review_talent(request):
         Notification.objects.create(
         user=gig.winner, 
         title='New review', 
-        message=f'Hirer {user.username} has provided a review for recently completed gig {gig.title}.', lind=review_url)
+        message=f'Hirer {user.username} has provided a review for recently completed gig {gig.title}.', link=review_url)
 
         return Response(talent_review.data)
 
