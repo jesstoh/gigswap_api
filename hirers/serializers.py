@@ -5,6 +5,7 @@ from hirers.models import HirerFav
 from gigs.models import Gig
 from accounts.serializers import UserSerializer, TalentProfileSerializer, HirerProfileSerializer
 from gigs.serializers import GigSerializer
+from reviews.models import HirerReview
 
 class HirerFavSerializer(serializers.ModelSerializer):
     hired_talents = serializers.SerializerMethodField('hired_talents_list')
@@ -71,17 +72,22 @@ class HirerFavSerializer(serializers.ModelSerializer):
 class HirerDetailSerializer(serializers.ModelSerializer):
     hirer_profile = HirerProfileSerializer(read_only=True)
     active_gigs = serializers.SerializerMethodField('gigs_active')
+    review_count = serializers.SerializerMethodField('get_review_count')
 
     #Get active gigs
     def gigs_active(self, obj):
         gigs = Gig.objects.filter(poster=obj, expired_at__gte=timezone.now().date(), is_closed=False, winner__isnull=True).order_by('-created_at')
         return GigSerializer(gigs, many=True).data
+    
+    #Get number of reviews received
+    def get_review_count(self, obj):
+        return HirerReview.objects.filter(hirer=obj).count()
 
     class Meta:
         model = User
         # fields = "__all__"
         fields = ('id', 'hirer_profile', 
-                  'username', 'first_name', 'last_name', 'email', 'active_gigs')
+                  'username', 'first_name', 'last_name', 'email', 'active_gigs','review_count')
         read_only_fields = ('id',)
     
 
