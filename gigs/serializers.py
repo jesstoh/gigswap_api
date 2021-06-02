@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Avg
 from gigs.models import Gig
 from categories.serializers import SubcategorySerializer
 from categories.models import Subcategory
@@ -16,6 +17,8 @@ class GigSerializer(serializers.ModelSerializer):
     poster_profile = serializers.SerializerMethodField('get_hirer_profile')
     is_hirer_reviewed = serializers.SerializerMethodField('get_hirer_review')
     is_talent_reviewed = serializers.SerializerMethodField('get_talent_review')
+    review_count = serializers.SerializerMethodField('get_review_count')
+    avg_review_rating = serializers.SerializerMethodField('get_review_rating')
 
     # Get applicant id in a list and flatten into a list
     def get_applicants(self, obj):
@@ -34,6 +37,15 @@ class GigSerializer(serializers.ModelSerializer):
 
     def get_talent_review(self, obj):
         return TalentReview.objects.filter(gig=obj).exists()
+    
+    #Get number of reviews received
+    def get_review_count(self, obj):
+        return HirerReview.objects.filter(hirer=obj.poster).count()
+
+    #Get average review rating
+    def get_review_rating(self, obj):
+        return HirerReview.objects.filter(hirer=obj.poster).aggregate(Avg('rating'))['rating__avg']
+
         
     class Meta:
         model = Gig
