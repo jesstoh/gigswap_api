@@ -75,6 +75,7 @@ class HirerDetailSerializer(serializers.ModelSerializer):
     active_gigs = serializers.SerializerMethodField('gigs_active')
     review_count = serializers.SerializerMethodField('get_review_count')
     avg_review_rating = serializers.SerializerMethodField('get_review_rating')
+    gigs_award_count = serializers.SerializerMethodField('get_gigs_award_count')
 
     #Get active gigs
     def gigs_active(self, obj):
@@ -89,11 +90,15 @@ class HirerDetailSerializer(serializers.ModelSerializer):
     def get_review_rating(self, obj):
         return HirerReview.objects.filter(hirer=obj).aggregate(Avg('rating'))['rating__avg']
 
+    #Get number of gigs awarded
+    def get_gigs_award_count(self, obj):
+        return Gig.objects.filter(poster=obj, winner__isnull=False).count()
+
     class Meta:
         model = User
         # fields = "__all__"
         fields = ('id', 'hirer_profile', 
-                  'username', 'first_name', 'last_name', 'email', 'active_gigs','review_count', 'avg_review_rating')
+                  'username', 'first_name', 'last_name', 'email', 'active_gigs','review_count', 'avg_review_rating', 'gigs_award_count')
         read_only_fields = ('id',)
     
 
