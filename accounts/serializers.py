@@ -1,8 +1,10 @@
 from rest_framework import serializers
+from django.db.models import Avg
 from accounts.models import User, TalentProfile, HirerProfile
 from categories.serializers import SubcategorySerializer
 from categories.models import Subcategory
 from gigs.models import Gig
+from reviews.models import TalentReview
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,10 +23,20 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     skills = SubcategorySerializer(read_only=True, many=True)
     gigs_won = serializers.SerializerMethodField('gigs_won_count') #Quantity of Gig won
+    review_count = serializers.SerializerMethodField('get_review_count')
+    avg_review_rating = serializers.SerializerMethodField('get_review_rating')
 
     #Get set of won gigs
     def gigs_won_count(self, obj):        
         return Gig.objects.filter(winner=obj.user).count()
+
+    #Get number of reviews received
+    def get_review_count(self, obj):
+        return TalentReview.objects.filter(talent=obj.user).count()
+
+     #Get average review rating
+    def get_review_rating(self, obj):
+        return TalentReview.objects.filter(talent=obj.user).aggregate(Avg('rating'))['rating__avg']
 
     class Meta:
         model = TalentProfile
