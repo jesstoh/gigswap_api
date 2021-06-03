@@ -36,7 +36,10 @@ class TalentProfileSerializer(serializers.ModelSerializer):
 
      #Get average review rating
     def get_review_rating(self, obj):
-        return TalentReview.objects.filter(talent=obj.user).aggregate(Avg('rating'))['rating__avg']
+        avg_rating = TalentReview.objects.filter(talent=obj.user).aggregate(Avg('rating'))['rating__avg']
+        if avg_rating is not None:
+            avg_rating = round(avg_rating, 1)
+        return avg_rating
 
     class Meta:
         model = TalentProfile

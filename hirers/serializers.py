@@ -88,7 +88,10 @@ class HirerDetailSerializer(serializers.ModelSerializer):
 
     #Get average review rating
     def get_review_rating(self, obj):
-        return HirerReview.objects.filter(hirer=obj).aggregate(Avg('rating'))['rating__avg']
+        avg_rating = HirerReview.objects.filter(hirer=obj).aggregate(Avg('rating'))['rating__avg']
+        if avg_rating is not None:
+            avg_rating = round(avg_rating, 1)
+        return avg_rating
 
     #Get number of gigs awarded
     def get_gigs_award_count(self, obj):

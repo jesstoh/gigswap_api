@@ -44,9 +44,11 @@ class GigSerializer(serializers.ModelSerializer):
 
     #Get average review rating
     def get_review_rating(self, obj):
-        return HirerReview.objects.filter(hirer=obj.poster).aggregate(Avg('rating'))['rating__avg']
-
-        
+        avg_rating = HirerReview.objects.filter(hirer=obj.poster).aggregate(Avg('rating'))['rating__avg']
+        if avg_rating is not None:
+            avg_rating = round(avg_rating, 1)
+        return avg_rating
+       
     class Meta:
         model = Gig
         fields = "__all__"

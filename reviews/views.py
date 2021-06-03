@@ -174,6 +174,10 @@ def hirer_review_index(request, hirer_id):
 
     #Get summary of reviews (average)
     summary = hirer_reviews_annotated.aggregate(avg_rating=Avg('rating'), avg_ontime=Avg('is_ontime'), avg_scope=Avg('scope'), review_count=Count('rating'))
+
+    for ele in ['avg_rating', 'avg_ontime', 'avg_scope']:
+        if summary[ele] is not None:
+            summary[ele] = round(summary[ele], 2)
     hirer_reviews_serialized = HirerReviewSerializer(hirer_reviews, many=True)
 
     return Response({'summary': summary, 'reviews': hirer_reviews_serialized.data})
@@ -200,5 +204,9 @@ def talent_review_index(request, talent_id):
     #Get summary of reviews (average)
     summary = talent_reviews_annotated.aggregate(avg_rating=Avg('rating'), avg_ontime=Avg('ontime'), avg_quality=Avg('quality'), avg_recommended=Avg('is_recommended'), review_count=Count('rating'))
     talent_reviews_serialized = TalentReviewSerializer(talent_reviews, many=True)
+
+    for ele in ['avg_rating', 'avg_ontime', 'avg_quality', 'avg_recommended']:
+        if summary[ele] is not None:
+            summary[ele] = round(summary[ele], 2)
 
     return Response({'summary': summary, 'reviews': talent_reviews_serialized.data})
