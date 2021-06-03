@@ -24,6 +24,9 @@ class GigSerializer(serializers.ModelSerializer):
     def get_applicants(self, obj):
         # applicants = obj.talent_applied.all().values_list('user__id', flat=True)
         applicant_ids = obj.talent_applied.all().values_list('user__id', flat=True)
+        applicant_ids = set(applicant_ids)
+        if obj.winner is not None:
+            applicant_ids.add(obj.winner.id)
         applicant_profiles = TalentProfile.objects.filter(
             user__in=applicant_ids)
         return TalentProfileSerializer(applicant_profiles, many=True).data
