@@ -167,7 +167,7 @@ def hirer_review_index(request, hirer_id):
         raise exceptions.NotFound({'detail': 'Hirer not found'})
 
     # Get all reviews given by hirer
-    give_reviews = TalentReview.objects.filter(hirer=user)
+    # give_reviews = TalentReview.objects.filter(hirer=user)
     
     # Get all reviews received by hirer
     hirer_reviews = HirerReview.objects.filter(hirer=user)
@@ -183,9 +183,9 @@ def hirer_review_index(request, hirer_id):
             summary[ele] = round(summary[ele], 2)
     hirer_reviews_serialized = HirerReviewSerializer(hirer_reviews, many=True)
 
-    give_reviews_serialized = TalentReviewSerializer(give_reviews, many=True)
+    # give_reviews_serialized = TalentReviewSerializer(give_reviews, many=True)
 
-    return Response({'summary': summary, 'reviews': hirer_reviews_serialized.data, 'give_reviews': give_reviews_serialized.data})
+    return Response({'summary': summary, 'reviews': hirer_reviews_serialized.data})
 
 
 @api_view(['GET'])
@@ -202,7 +202,7 @@ def talent_review_index(request, talent_id):
 
     
     # Get all reviews given by talent
-    give_reviews = HirerReview.objects.filter(talent=talent)
+    # give_reviews = HirerReview.objects.filter(talent=talent)
 
     # Get all reviews received by talent
     talent_reviews = TalentReview.objects.filter(talent=talent)
@@ -214,10 +214,28 @@ def talent_review_index(request, talent_id):
     summary = talent_reviews_annotated.aggregate(avg_rating=Avg('rating'), avg_ontime=Avg('ontime'), avg_quality=Avg('quality'), avg_recommended=Avg('is_recommended'), review_count=Count('rating'))
     
     talent_reviews_serialized = TalentReviewSerializer(talent_reviews, many=True)
-    give_reviews_serialized = HirerReviewSerializer(give_reviews, many=True)
+    # give_reviews_serialized = HirerReviewSerializer(give_reviews, many=True)
 
     for ele in ['avg_rating', 'avg_ontime', 'avg_quality', 'avg_recommended']:
         if summary[ele] is not None:
             summary[ele] = round(summary[ele], 2)
 
-    return Response({'summary': summary, 'reviews': talent_reviews_serialized.data, 'give_reviews': give_reviews_serialized.data})
+    return Response({'summary': summary, 'reviews': talent_reviews_serialized.data})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_reviews_index(request):
+    if request.user.is_staff:
+        raise exceptions.NotFound({'detail': 'User is not hirer or talent'})
+    if request.user.is_hirer:
+        talent_reviews = TalentReview.objects.filter(hirer=request.user)
+        hirer_reviews = HirerReview.objects.filter(hirer=request.user)
+    else:
+        talent_reviews = TalentReview.objects.filter(talent=request.user)
+        hirer_reviews = HirerReview.objects.filter(talent=request.user)
+
+    talent_reviews_serialized = TalentReviewSerializer(talent_reviews, many=True)
+    hirer_reviews_serialized = HirerReviewSerializer(hirer_reviews, many=True)
+
+    return Response({'hirer_reviews': hirer_reviews_serialized.data, 'talent_reviews': talent_reviews_serialized.data})
