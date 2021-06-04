@@ -326,8 +326,25 @@ def flag_view(request, id):
 #Login talent to unflag a gig
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def unflag_view(request):
-    pass
+def unflag_view(request, id):
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+    
+    # Only can unflag active gig
+    if gig.expired_at.date() < timezone.now().date() or gig.is_closed or gig.winner:
+        return Response({'detail': 'Can\'t unflag expired or closed gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    
+
+    user = request.user
+    #Check if login user is a talent
+    if user.is_hirer or user.is_staff:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can unflag a gig'})
+    
+    #Remove user from flag field
+    gig.flag.remove(user)
+    return Response({'message': 'Gig unflagged'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
