@@ -151,6 +151,7 @@ def apply_view(request, id):
     talent_fav = TalentFav.objects.get(user=user)
     talent_fav.applied.add(gig)
     talent_fav.saved.remove(gig) #remove gig from saved list after applying
+    talent_fav.invited.remove(gig) #remove gig from invited list after applying
     return Response({'message':'Apply gig successfully'})
 
 @api_view(['PUT'])
@@ -298,6 +299,35 @@ def complete_gig_view(request, id):
         return Response({'message': 'Gig completion is updated'})
     
     return Response({'detail': 'Only can confirm gig which has been awarded'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+# Login talent to flag a gig
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def flag_view(request, id):
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+    
+    # Only can flag active gig
+    if gig.expired_at.date() < timezone.now().date() or gig.is_closed or gig.winner:
+        return Response({'detail': 'Can\'t flag expired or closed gig'}, status=status.HTTP_412_PRECONDITION_FAILED)
+    
+
+    user = request.user
+    #Check if login user is a talent
+    if user.is_hirer or user.is_staff:
+        raise exceptions.PermissionDenied({'detail': 'Only talent can flag a gig'})
+    
+    #Add user to flag field
+    gig.flag.add(user)
+    return Response({'message': 'Flag recorded'})
+
+#Login talent to unflag a gig
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def unflag_view(request):
+    pass
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

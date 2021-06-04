@@ -14,6 +14,8 @@ urlpatterns = [
     path('<uuid:id>/award/', award_view, name='award_gig'),
     path('<uuid:id>/invite/', invite_view, name='invite_talent'),
     path('<uuid:id>/complete/', complete_gig_view, name='gig_complete'),
+    path('<uuid:id>/flag/', flag_view, name='flag_gig'), #Login talent to flag a gig
+    path('<uuid:id>/unflag/', unflag_view, name='unflag_gig'), #Login talent to unflag a gig    
     path('hirer/', hirer_view, name='hirer_gigs_index')
 
 ]
