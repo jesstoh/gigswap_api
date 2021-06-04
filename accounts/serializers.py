@@ -9,8 +9,8 @@ from reviews.models import TalentReview
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','first_name', 'last_name', 'username', 'email', 'password', 'is_hirer', 'is_staff', 'is_active', 'is_profile_complete']
-        read_only_fields = ('id', 'is_staff', 'is_active','is_profile_complete')
+        fields = ['id','first_name', 'last_name', 'username', 'email', 'password', 'is_hirer', 'is_staff', 'is_active', 'is_profile_complete', 'date_joined']
+        read_only_fields = ('id', 'is_staff', 'is_active','is_profile_complete', 'date_joined',)
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
