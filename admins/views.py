@@ -30,3 +30,27 @@ def users_view(request):
     talents_serialized = UserSerializer(talents, many=True)
     hirers_serialized = UserSerializer(hirers, many=True)
     return Response({'talents': talents_serialized.data, 'hirers': hirers_serialized.data})
+
+#Deactivate user
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def deactivate_view(request, userId):
+    try:
+        user = User.objects.get(pk=userId)
+    except:
+        raise exceptions.NotFound({'detail': 'User not found'})
+
+    #Check if user is active
+    if not user.is_active:
+        return Response({'detail': 'Cannot deactivate inactive user'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    #Deactivate user
+    user.is_active = False
+    user.save()
+    return Response({'message': 'User deactivated'})
+
+#Activate user
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def activate_view(request, userId):
+    pass
