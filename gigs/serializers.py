@@ -87,3 +87,15 @@ class GigSerializer(serializers.ModelSerializer):
             subcategories.append(subcat)
         gig.subcategories.set(subcategories)
         return gig
+
+#fetching brief details of serializer
+class GigBriefSerializer(serializers.ModelSerializer):
+    flag_count = serializers.SerializerMethodField('get_flag_count')
+    poster = UserSerializer(read_only=True, many=False)
+
+    def get_flag_count(self, obj):
+        return obj.flag.count()
+
+    class Meta:
+        model = Gig
+        fields = ['id', 'title', 'poster' , 'is_closed', 'is_completed', 'paid', 'winner', 'flag_count', 'created_at', 'expired_at']

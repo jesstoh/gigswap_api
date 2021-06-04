@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Count
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response 
@@ -8,6 +9,7 @@ from django.utils import timezone
 from accounts.models import User
 from accounts.serializers import UserSerializer
 from gigs.models import Gig
+from gigs.serializers import GigBriefSerializer
 
 # Create your views here.
 
@@ -66,3 +68,18 @@ def activate_view(request, userId):
     user.is_active = True
     user.save()
     return Response({'message': 'User activated'})
+
+#Get all active and inactive gigs
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def gigs_index_view(request):
+
+    if request.GET.get('active') == 'True':
+        # Filter not expired gigs & order by number of flags
+        gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).annotate(flag_count = Count('flag')).order_by('-flag_count')   
+    else:
+        gigs = Gig.objects.all().order_by('-created_at')
+
+    gigs_serialized = GigBriefSerializer(gigs, many=True)
+
+    return Response(gigs_serialized.data)
