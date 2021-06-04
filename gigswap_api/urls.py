@@ -26,5 +26,6 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),
     path('api/talents/', include('talents.urls')),
     path('api/hirers/', include('hirers.urls')),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/admins/', include('admins.urls'))
 ]
