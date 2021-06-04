@@ -25,8 +25,8 @@ def dashboard_view(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def users_view(request):
-    talents = User.objects.filter(is_hirer=False, is_staff=False)
-    hirers = User.objects.filter(is_hirer=True)
+    talents = User.objects.filter(is_hirer=False, is_staff=False).order_by('-date_joined')
+    hirers = User.objects.filter(is_hirer=True).order_by('-date_joined')
     talents_serialized = UserSerializer(talents, many=True)
     hirers_serialized = UserSerializer(hirers, many=True)
     return Response({'talents': talents_serialized.data, 'hirers': hirers_serialized.data})
