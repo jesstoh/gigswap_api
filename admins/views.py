@@ -50,7 +50,19 @@ def deactivate_view(request, userId):
     return Response({'message': 'User deactivated'})
 
 #Activate user
-@api_view(['GET'])
+@api_view(['PUT'])
 @permission_classes([IsAdminUser])
 def activate_view(request, userId):
-    pass
+    try:
+        user = User.objects.get(pk=userId)
+    except:
+        raise exceptions.NotFound({'detail': 'User not found'})
+
+    #Check if user is inactive
+    if user.is_active:
+        return Response({'detail': 'Cannot activate active user'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    #Activate user
+    user.is_active = True
+    user.save()
+    return Response({'message': 'User activated'})
