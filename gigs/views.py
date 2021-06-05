@@ -50,19 +50,15 @@ def index_view(request):
             subcategories = json.loads(query_params['subcategories'])
             hour_rate = int(query_params.get('hour_rate'))
 
-            if is_remote:
-                #Filter active gigs based on query pararms filtering criteria
-                if is_fixed:
-                    gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), is_remote=is_remote, is_fixed=is_fixed, subcategories__in=set(subcategories),hour_rate__gte=hour_rate).order_by('-created_at')
-                else:
-                    gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), is_remote=is_remote, subcategories__in=set(subcategories),hour_rate__gte=hour_rate).order_by('-created_at')
-            else:
-                if is_fixed:
-                    gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), is_fixed=is_fixed, subcategories__in=set(subcategories),hour_rate__gte=hour_rate).order_by('-created_at')
-                else:
-                    gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), subcategories__in=set(subcategories),hour_rate__gte=hour_rate).order_by('-created_at')
+            gigs = gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(),hour_rate__gte=hour_rate)
 
-            # return Response({'subcategories': json.loads(query_params['subcategories'])})
+            if is_remote:
+                gigs = gigs.filter(is_remote=True)
+            if is_fixed:
+                gigs = gigs.filter(is_fixed=True)
+            if len(subcategories) > 0:
+                gigs = gigs.filter(subcategories__in=set(subcategories))
+            gigs = gigs.order_by('-created_at')
 
         else:
             #No filter or search
