@@ -74,7 +74,7 @@ def activate_view(request, userId):
 @permission_classes([IsAdminUser])
 def gigs_index_view(request):
 
-    if request.GET.get('active') == 'True':
+    if request.GET.get('active') == 'true':
         # Filter not expired gigs & order by number of flags
         gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).annotate(flag_count = Count('flag')).order_by('-flag_count')   
     else:

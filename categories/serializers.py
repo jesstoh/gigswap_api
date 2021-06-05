@@ -3,6 +3,11 @@ from categories.models import Category, Subcategory
 
 class SubcategorySerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
+    category_id = serializers.SerializerMethodField('get_category_id')
+
+    def get_category_id(self, obj):
+        return obj.category.id 
+        
     class Meta:
         model = Subcategory
         fields = '__all__'
