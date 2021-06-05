@@ -19,6 +19,7 @@ from notifications.models import Notification
 
 # Get base url of front end 
 BASE_URL = os.environ['BASE_URL']
+PAGE_ITEMS_COUNT = 10 #set number items to display per page
 
 # Create your views here.
 @api_view(['GET', 'POST'])
@@ -64,8 +65,25 @@ def index_view(request):
             #No filter or search
             gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).order_by('-created_at')
 
-        gigs_serializer = GigSerializer(gigs, many=True)
-        return Response(gigs_serializer.data)
+        #Pagination
+        gigs_pages = Paginator(gigs, PAGE_ITEMS_COUNT) 
+
+        #set initial default page
+        page = 1
+        if query_params.get('page'):
+            try:
+                query_page = int(query_params.get('page'))
+            except:
+                query_page = 1
+            if (1 < query_page <= gigs_pages.num_pages):
+                page = query_page
+
+        gigs_paginated = gigs_pages.page(page)
+        gigs_serializer = GigSerializer(gigs_paginated, many=True)
+
+        # gigs_serializer = GigSerializer(gigs, many=True)
+        # return Response(gigs_serializer.data)
+        return Response({'gigs': gigs_serializer.data, 'pageCount': gigs_pages.num_pages})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
