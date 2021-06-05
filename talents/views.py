@@ -1,5 +1,7 @@
+import os
 from django.shortcuts import render
 from django.db.models import Avg, Count
+from django.core.paginator import Paginator
 import json
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -13,7 +15,7 @@ from talents.models import TalentFav
 from hirers.models import HirerFav
 
 # Create your views here.
-
+PAGE_ITEMS_COUNT = os.environ['PAGE_ITEMS_COUNT'] #set number items to display per page
 # Get all talents profiles
 
 
@@ -45,8 +47,25 @@ def view_index(request):
                 talents = talents.filter(skills__in=skills)
         else:
             talents = TalentProfile.objects.all()
-        talents_serialized = TalentProfileSerializer(talents, many=True)
-        return Response(talents_serialized.data)
+        # talents_serialized = TalentProfileSerializer(talents, many=True)
+
+         #Pagination
+        talents_pages = Paginator(talents, PAGE_ITEMS_COUNT) 
+
+        #set initial default page
+        page = 1
+        if query_params.get('page'):
+            try:
+                query_page = int(query_params.get('page'))
+            except:
+                query_page = 1
+            if (1 < query_page <= talents_pages.num_pages):
+                page = query_page
+
+        talents_paginated = talents_pages.page(page)
+        talents_serialized = TalentProfileSerializer(talents_paginated, many=True)
+
+        return Response({'talents':talents_serialized.data, 'pageCount': talents_pages.num_pages})
     else:
         raise exceptions.PermissionDenied(
             {'detail': 'Only hirers or admin can access talents list'})

@@ -19,7 +19,7 @@ from notifications.models import Notification
 
 # Get base url of front end 
 BASE_URL = os.environ['BASE_URL']
-PAGE_ITEMS_COUNT = 10 #set number items to display per page
+PAGE_ITEMS_COUNT = os.environ['PAGE_ITEMS_COUNT'] #set number items to display per page
 
 # Create your views here.
 @api_view(['GET', 'POST'])
