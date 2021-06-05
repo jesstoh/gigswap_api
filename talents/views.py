@@ -19,7 +19,12 @@ def view_index(request):
     user = request.user
     #Only hirers or admin can access list of talents
     if user.is_hirer or user.is_staff:
-        talents = TalentProfile.objects.all()
+        query_params = request.GET      
+        if query_params.get('search'):
+            #Searching value in bio
+            talents = TalentProfile.objects.filter(bio__icontains=query_params.get('search'))
+        else:
+            talents = TalentProfile.objects.all()
         talents_serialized = TalentProfileSerializer(talents, many=True)
         return Response(talents_serialized.data)
     else:
