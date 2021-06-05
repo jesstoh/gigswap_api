@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.db.models import Avg, Count
+import json
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import exceptions
 from rest_framework import status
@@ -12,37 +14,59 @@ from hirers.models import HirerFav
 
 # Create your views here.
 
-#Get all talents profiles
+# Get all talents profiles
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def view_index(request):
     user = request.user
-    #Only hirers or admin can access list of talents
+    # Only hirers or admin can access list of talents
     if user.is_hirer or user.is_staff:
-        query_params = request.GET      
+        query_params = request.GET
         if query_params.get('search'):
-            #Searching value in bio
-            talents = TalentProfile.objects.filter(bio__icontains=query_params.get('search'))
+            # Searching value in bio
+            talents = TalentProfile.objects.values('user').filter(
+                bio__icontains=query_params.get('search'))
+        elif query_params.get('filter'):
+            # process query param
+            skills = json.loads(query_params['skills'])
+            rating = int(query_params.get('rating'))
+            gigs_completed = int(query_params.get('gigs_completed'))
+            talents_profile_annotated = TalentProfile.objects.annotate(avg_rating=Avg('user__talent_review__rating'))
+            # talents = talents_profile_annotated.filter(avg_rating__gte=rating)
+            if rating > 0:
+                talents = talents_profile_annotated.filter(avg_rating__gte=rating)
+            else:
+                talents = talents_profile_annotated
+            # if is_remote:
+            #     gigs = gigs.filter(is_remote=True)
+            # if is_fixed:
+            #     gigs = gigs.filter(is_fixed=True)
+            # if len(subcategories) > 0:
+            #     gigs = gigs.filter(subcategories__in=set(subcategories))
+            # gigs = gigs.order_by('-created_at')
         else:
             talents = TalentProfile.objects.all()
         talents_serialized = TalentProfileSerializer(talents, many=True)
         return Response(talents_serialized.data)
     else:
-        raise exceptions.PermissionDenied({'detail': 'Only hirers or admin can access talents list'})
+        raise exceptions.PermissionDenied(
+            {'detail': 'Only hirers or admin can access talents list'})
 
 
-#Show detail of talent
+# Show detail of talent
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def view_show(request, id):
-    #Check if talent exists
+    # Check if talent exists
     try:
         talent = User.objects.get(pk=id)
     except:
         raise exceptions.NotFound({'detail': 'Talent not found'})
     # Check if talent completed the profile
     if not talent.is_profile_complete:
-        raise exceptions.NotFound({'detail':'Talent profile not found'})
+        raise exceptions.NotFound({'detail': 'Talent profile not found'})
 
     talent_details = TalentDetailSerializer(talent)
     return Response(talent_details.data)
@@ -59,38 +83,44 @@ def view_fav(request):
     talent_fav_serialized = TalentFavSerializer(talent_fav)
     return Response(talent_fav_serialized.data)
 
-#login hirer save talent
+# login hirer save talent
+
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def view_save(request, id):
-    #Check if talent and profile exist
+    # Check if talent and profile exist
     try:
         talent = User.objects.get(pk=id)
         talent_profile = TalentProfile.objects.get(user=talent)
     except:
-        raise exceptions.NotFound({'detail': 'Talent or Talent Profile not found'})
-    #Check if user hirer, only hirer can save talent
+        raise exceptions.NotFound(
+            {'detail': 'Talent or Talent Profile not found'})
+    # Check if user hirer, only hirer can save talent
     if not request.user.is_hirer:
-        raise exceptions.PermissionDenied({'detail': 'Only hirer can save talent profile'})
+        raise exceptions.PermissionDenied(
+            {'detail': 'Only hirer can save talent profile'})
     hirer_fav = HirerFav.objects.get(user=request.user)
     hirer_fav.saved.add(talent_profile)
     return Response({'message': 'Talent saved'})
 
 # Login hirer unsave talent profile from HirerFav list
+
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def view_unsave(request, id):
-    #Check if talent and profile exist
+    # Check if talent and profile exist
     try:
         talent = User.objects.get(pk=id)
         talent_profile = TalentProfile.objects.get(user=talent)
     except:
-        raise exceptions.NotFound({'detail': 'Talent or Talent Profile not found'})
-    #Check if user hirer, only hirer can unsave talent
+        raise exceptions.NotFound(
+            {'detail': 'Talent or Talent Profile not found'})
+    # Check if user hirer, only hirer can unsave talent
     if not request.user.is_hirer:
-        raise exceptions.PermissionDenied({'detail': 'Only hirer can unsave talent profile'})
+        raise exceptions.PermissionDenied(
+            {'detail': 'Only hirer can unsave talent profile'})
     hirer_fav = HirerFav.objects.get(user=request.user)
     hirer_fav.saved.remove(talent_profile)
     return Response({'message': 'Talent unsaved'})
-
-
