@@ -26,26 +26,23 @@ def view_index(request):
         query_params = request.GET
         if query_params.get('search'):
             # Searching value in bio
-            talents = TalentProfile.objects.values('user').filter(
+            talents = TalentProfile.objects.filter(
                 bio__icontains=query_params.get('search'))
         elif query_params.get('filter'):
             # process query param
             skills = json.loads(query_params['skills'])
             rating = int(query_params.get('rating'))
             gigs_completed = int(query_params.get('gigs_completed'))
-            talents_profile_annotated = TalentProfile.objects.annotate(avg_rating=Avg('user__talent_review__rating'))
+            talents_profile_annotated = TalentProfile.objects.annotate(avg_rating=Avg('user__talent_review__rating'), gigs_completed_count=Count('user__gigs_won__is_completed'==True))
             # talents = talents_profile_annotated.filter(avg_rating__gte=rating)
             if rating > 0:
                 talents = talents_profile_annotated.filter(avg_rating__gte=rating)
             else:
                 talents = talents_profile_annotated
-            # if is_remote:
-            #     gigs = gigs.filter(is_remote=True)
-            # if is_fixed:
-            #     gigs = gigs.filter(is_fixed=True)
-            # if len(subcategories) > 0:
-            #     gigs = gigs.filter(subcategories__in=set(subcategories))
-            # gigs = gigs.order_by('-created_at')
+            if gigs_completed > 0:
+                talents = talents.filter(gigs_completed_count__gte=gigs_completed)
+            if len(skills) > 0:
+                talents = talents.filter(skills__in=skills)
         else:
             talents = TalentProfile.objects.all()
         talents_serialized = TalentProfileSerializer(talents, many=True)
