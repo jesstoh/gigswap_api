@@ -29,24 +29,26 @@ def view_index(request):
         if query_params.get('search'):
             # Searching value in bio
             talents = TalentProfile.objects.filter(
-                bio__icontains=query_params.get('search'))
+                bio__icontains=query_params.get('search'), user__is_active=True)
         elif query_params.get('filter'):
             # process query param
             skills = json.loads(query_params['skills'])
             rating = int(query_params.get('rating'))
-            gigs_completed = int(query_params.get('gigs_completed'))
-            talents_profile_annotated = TalentProfile.objects.annotate(avg_rating=Avg('user__talent_review__rating'), gigs_completed_count=Count('user__gigs_won__is_completed'==True))
+            gigs_won = int(query_params.get('gigs_won'))
+            talents_profile_annotated = TalentProfile.objects.annotate(avg_rating=Avg('user__talent_review__rating'), gigs_won_count=Count('user__gigs_won'))
             # talents = talents_profile_annotated.filter(avg_rating__gte=rating)
             if rating > 0:
                 talents = talents_profile_annotated.filter(avg_rating__gte=rating)
             else:
                 talents = talents_profile_annotated
-            if gigs_completed > 0:
-                talents = talents.filter(gigs_completed_count__gte=gigs_completed)
+            if gigs_won > 0:
+                talents = talents.filter(gigs_won_count__gte=gigs_won)
             if len(skills) > 0:
                 talents = talents.filter(skills__in=skills)
+            #Only show active users
+            talents = talents.filter(user__is_active=True)
         else:
-            talents = TalentProfile.objects.all()
+            talents = TalentProfile.objects.filter(user__is_active=True)
         # talents_serialized = TalentProfileSerializer(talents, many=True)
 
          #Pagination
