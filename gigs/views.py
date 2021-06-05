@@ -1,5 +1,7 @@
 import os
 from django.shortcuts import render
+from django.core.paginator import Paginator
+import json
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response 
@@ -36,8 +38,27 @@ def index_view(request):
         return Response(gig.data, status=status.HTTP_201_CREATED)
         
     if request.method == 'GET':
-        # Filter not expired gigs & order by dates of post
-        gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).order_by('-created_at')
+        query_params = request.GET
+        
+        if query_params.get('search'):
+            #Searching value in gig description
+            gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), description__icontains=query_params.get('search')).order_by('-created_at')
+        elif query_params.get('filter'):
+            #process query param 
+            is_remote = True if query_params.get('is_remote') =='true' else False
+            is_fixed = True if query_params.get('is_fixed') =='true' else False           
+            subcategories = json.loads(query_params['subcategories'])
+            hour_rate = int(query_params.get('hour_rate'))
+
+            #Filter active gigs based on query pararms filtering criteria
+            gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), is_remote=is_remote, is_fixed=is_fixed, subcategories__in=set(subcategories),hour_rate__gte=hour_rate).order_by('-created_at')
+
+            # return Response({'subcategories': json.loads(query_params['subcategories'])})
+
+        else:
+            #No filter or search
+            gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).order_by('-created_at')
+            
         gigs_serializer = GigSerializer(gigs, many=True)
         return Response(gigs_serializer.data)
 
