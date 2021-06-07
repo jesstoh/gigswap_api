@@ -92,7 +92,7 @@ def profile_view(request):
                 user.save()
                 return Response(profile.data)
             else:
-                raise exceptions.ValidationError({'detail':'Input not valid'})
+                raise exceptions.ValidationError({'detail': 'Input not valid'})
 
     # Check if profile exists for get and put route
     if not user.is_profile_complete:
@@ -134,7 +134,8 @@ def auth_view(request):
         'isAdmin': False,
         'isProfileComplete': request.user.is_profile_complete,
         'user': {'id': user.id,
-                 'username': user.username}
+                 'username': user.username,
+                 'first_name': user.first_name}
     }
     if user.is_hirer:
         data['isHirer'] = True
