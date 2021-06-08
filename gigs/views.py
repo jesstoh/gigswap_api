@@ -360,6 +360,26 @@ def complete_gig_view(request, id):
     
     return Response({'detail': 'Only can confirm gig which has been awarded'}, status=status.HTTP_412_PRECONDITION_FAILED)
 
+#Talent to confirm receipt payment of gig
+#Next goal to change this to link to payment system for gig owner to do payment
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def pay_gig_view(request, id):
+    try:
+        gig = Gig.objects.get(pk=id)
+    except:
+        raise exceptions.NotFound({'detail': 'Gig not found'})
+
+    if gig.winner != request.user:
+        raise exceptions.PermissionDenied({'detail': 'Only gig winner can confirm receipt of payment'})
+
+    if gig.is_completed:   
+        gig.paid = True
+        gig.save()
+        return Response({'message': 'Confirmed receipt of payment to gig'})
+    
+    return Response({'detail': 'Only can confirm payment of gig which has been completed'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
 # Login talent to flag a gig
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
