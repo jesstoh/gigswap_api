@@ -103,8 +103,24 @@ def recommend_gig_view(request):
     #Show only remote gig if talent preference is remote only
     if talent_profile.remote:
         gigs = gigs.filter(is_remote=True)
-    gigs_serialized = GigSerializer(gigs, many=True)
-    return Response(gigs_serialized.data)
+
+    #Pagination
+    gigs_pages = Paginator(gigs, PAGE_ITEMS_COUNT) 
+
+    #set initial default page
+    page = 1
+    if request.GET.get('page'):
+        try:
+            query_page = int(query_params.get('page'))
+        except:
+            query_page = 1
+        if (1 < query_page <= gigs_pages.num_pages):
+            page = query_page
+
+    gigs_paginated = gigs_pages.page(page)
+    gigs_serializer = GigSerializer(gigs_paginated, many=True)
+    
+    return Response({'gigs': gigs_serializer.data, 'pageCount': gigs_pages.num_pages})
 
 @api_view(['GET', 'DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
