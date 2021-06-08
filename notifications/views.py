@@ -32,6 +32,7 @@ def view_index(request):
             #Filter and delete notifications, only user can delete own notifications
             notifications = Notification.objects.filter(id__in=notification_ids, user=request.user)
             if notifications:
+                notifications.delete()
                 return Response({'message': 'Delete success'})
             else:
                 return Response({'message': 'No notification delete'})
