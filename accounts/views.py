@@ -62,6 +62,9 @@ def login_view(request):
             raise exceptions.AuthenticationFailed(
                 {'details': 'wrong password'})
 
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed(
+                {'details': 'Account deactivated - please reach out to admin@gigswap.com'})
         user_serialized = UserSerializer(user).data
 
         refresh = RefreshToken.for_user(user)
