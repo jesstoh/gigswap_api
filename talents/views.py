@@ -1,7 +1,8 @@
 import os
 from django.shortcuts import render
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 from django.core.paginator import Paginator
+from functools import reduce
 import json
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -28,8 +29,11 @@ def view_index(request):
         query_params = request.GET
         if query_params.get('search'):
             # Searching value in bio
-            talents = TalentProfile.objects.filter(
-                bio__icontains=query_params.get('search'), user__is_active=True)
+            search_list = query_params.get('search').split()
+            # talents = TalentProfile.objects.filter(
+            #     bio__icontains=query_params.get('search'), user__is_active=True)
+
+            talents = TalentProfile.objects.filter(reduce(lambda x, y: x | y, [Q(bio__icontains=w) for w in search_list]), user__is_active=True)
         elif query_params.get('filter'):
             # process query param
             skills = json.loads(query_params['skills'])

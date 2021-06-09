@@ -1,6 +1,8 @@
 import os
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from django.db.models import Q
+from functools import reduce
 import json
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
@@ -43,7 +45,11 @@ def index_view(request):
         
         if query_params.get('search'):
             #Searching value in gig description
-            gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), description__icontains=query_params.get('search')).order_by('-created_at')
+            # gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date(), description__icontains=query_params.get('search')).order_by('-created_at')
+            search_list = query_params.get('search').split()
+            gigs = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date())           
+            gigs = gigs.filter(reduce(lambda x, y: x | y, [Q(description__icontains=w) for w in search_list]) | reduce(lambda x, y: x | y, [Q(title__icontains=w) for w in search_list])).order_by('-created_at')
+
         elif query_params.get('filter'):
             #process query param 
             is_remote = True if query_params.get('is_remote') =='true' else False
