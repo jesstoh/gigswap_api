@@ -14,6 +14,7 @@ class HirerProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="hirer_profile")
     company = models.CharField(max_length=255, null=False)
+    bio = models.TextField(blank=True, null=True)
     address = models.CharField(max_length=255, blank=True)
     postal_code = models.IntegerField(null=True)
     country = models.CharField(max_length=100, blank=True)
