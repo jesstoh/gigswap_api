@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response 
@@ -10,6 +10,7 @@ from accounts.models import User
 from accounts.serializers import UserSerializer
 from gigs.models import Gig
 from gigs.serializers import GigBriefSerializer
+from categories.models import Category, Subcategory
 
 # Create your views here.
 
@@ -17,11 +18,35 @@ from gigs.serializers import GigBriefSerializer
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def dashboard_view(request):
+
+    #User related stats
+    users_count = User.objects.filter(is_staff=False).count()
+    profile_complete_rate = User.objects.filter(is_profile_complete=True).count() / users_count
     hirers_count = User.objects.filter(is_hirer=True).count()
     talents_count = User.objects.filter(is_hirer=False, is_staff=False).count()
+
+    #Gigs related stats
     gigs_count = Gig.objects.all().count()
-    active_gigs_count = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gt=timezone.now().date()).count()
-    return Response({'hirersCount': hirers_count, 'talentsCount': talents_count, 'gigsCount': gigs_count, 'activeGigsCount': active_gigs_count })
+    active_gigs_count = Gig.objects.filter(is_closed=False, winner__isnull=True, expired_at__gte=timezone.now().date()).count()
+
+    gigs_expired_count = Gig.objects.filter(is_closed=False)
+    gigs_expired_count = gigs_expired_count.filter(Q(expired_at__lt=timezone.now().date()) | Q(winner__isnull=False)).distinct().count()
+    gigs_award_count = Gig.objects.filter(winner__isnull=False).count()
+    if gigs_expired_count and gigs_award_count:
+        gigs_award_rate = round(gigs_award_count / gigs_expired_count, 2)
+
+    gigs_cancel_count = Gig.objects.filter(is_closed=True).count()
+    if gigs_count and gigs_cancel_count:
+        gigs_cancel_rate = round(gigs_cancel_count / gigs_count, 2)
+    else:
+        gigs_cancel_rate = 0
+
+    
+    #Category related stats
+    category_count = Category.objects.all().count()
+    subcategory_count = Subcategory.objects.all().count()
+
+    return Response({'hirersCount': hirers_count, 'talentsCount': talents_count, 'profileCompleteRate': profile_complete_rate,'gigsCount': gigs_count, 'activeGigsCount': active_gigs_count, 'gigsCancelRate': gigs_cancel_rate, 'gigsAwardRate': gigs_award_rate, 'categoryCount': category_count, 'subcatCount': subcategory_count })
 
 #Get all users list
 @api_view(['GET'])
