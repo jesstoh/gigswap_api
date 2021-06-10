@@ -21,7 +21,7 @@ def dashboard_view(request):
 
     #User related stats
     users_count = User.objects.filter(is_staff=False).count()
-    profile_complete_rate = User.objects.filter(is_profile_complete=True).count() / users_count
+    profile_complete_rate = round(User.objects.filter(is_profile_complete=True).count() / users_count *100)
     hirers_count = User.objects.filter(is_hirer=True).count()
     talents_count = User.objects.filter(is_hirer=False, is_staff=False).count()
 
@@ -33,11 +33,11 @@ def dashboard_view(request):
     gigs_expired_count = gigs_expired_count.filter(Q(expired_at__lt=timezone.now().date()) | Q(winner__isnull=False)).distinct().count()
     gigs_award_count = Gig.objects.filter(winner__isnull=False).count()
     if gigs_expired_count and gigs_award_count:
-        gigs_award_rate = round(gigs_award_count / gigs_expired_count, 2)
+        gigs_award_rate = round(gigs_award_count / gigs_expired_count * 100)
 
     gigs_cancel_count = Gig.objects.filter(is_closed=True).count()
     if gigs_count and gigs_cancel_count:
-        gigs_cancel_rate = round(gigs_cancel_count / gigs_count, 2)
+        gigs_cancel_rate = round(gigs_cancel_count / gigs_count * 100)
     else:
         gigs_cancel_rate = 0
 
@@ -46,7 +46,7 @@ def dashboard_view(request):
     category_count = Category.objects.all().count()
     subcategory_count = Subcategory.objects.all().count()
 
-    return Response({'hirersCount': hirers_count, 'talentsCount': talents_count, 'profileCompleteRate': profile_complete_rate,'gigsCount': gigs_count, 'activeGigsCount': active_gigs_count, 'gigsCancelRate': gigs_cancel_rate, 'gigsAwardRate': gigs_award_rate, 'categoryCount': category_count, 'subcatCount': subcategory_count })
+    return Response({'usersCount': users_count, 'hirersCount': hirers_count, 'talentsCount': talents_count, 'profileCompleteRate': profile_complete_rate,'gigsCount': gigs_count, 'activeGigsCount': active_gigs_count, 'gigsCancelRate': gigs_cancel_rate, 'gigsAwardRate': gigs_award_rate, 'categoryCount': category_count, 'subcatCount': subcategory_count })
 
 #Get all users list
 @api_view(['GET'])
